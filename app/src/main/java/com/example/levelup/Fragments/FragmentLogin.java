@@ -71,12 +71,21 @@ public class FragmentLogin extends Fragment {
         return view;
     }
 
+
+
+
     private void loginUser(String email, String password, View view) {
+        if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(getActivity(), "Please enter email and password.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(getActivity(), task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Navigation.findNavController(view).navigate(R.id.action_fragmentLogin_to_nextFragment);
+                        Navigation.findNavController(view).navigate(R.id.action_fragmentLogin_to_searchEngine);
                     } else {
                         Toast.makeText(getActivity(), "Authentication Failed.", Toast.LENGTH_SHORT).show();
                     }

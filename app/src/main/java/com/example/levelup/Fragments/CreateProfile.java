@@ -20,6 +20,8 @@ import androidx.fragment.app.Fragment;
 import com.example.levelup.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +30,14 @@ public class CreateProfile extends Fragment {
 
     private AutoCompleteTextView gamesAutoComplete;
     private TextView gamesSelectedTextView;
-
     private EditText emailField;
     private EditText passwordField;
-    private ImageButton deleteButton;
     private EditText retypePasswordField;
+    private EditText nicknameField;
+    private ImageButton deleteButton;
     private Button registerButton;
     private FirebaseAuth mAuth;
+    private DatabaseReference databaseReference;
 
     private List<String> selectedGames = new ArrayList<>();
 
@@ -51,19 +54,22 @@ public class CreateProfile extends Fragment {
         gamesSelectedTextView = view.findViewById(R.id.GamesSelected);
         emailField = view.findViewById(R.id.emailField);
         passwordField = view.findViewById(R.id.passwordField);
-        deleteButton = view.findViewById(R.id.DeleteButton);
         retypePasswordField = view.findViewById(R.id.retypePasswordField);
+        nicknameField = view.findViewById(R.id.nicknameField);
+        deleteButton = view.findViewById(R.id.DeleteButton);
         registerButton = view.findViewById(R.id.registerButton);
 
         mAuth = FirebaseAuth.getInstance();
+        databaseReference = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference("users");
 
         registerButton.setOnClickListener(v -> {
             String email = emailField.getText().toString();
             String password = passwordField.getText().toString();
             String retypePassword = retypePasswordField.getText().toString();
+            String nickname = nicknameField.getText().toString();
 
             if (password.equals(retypePassword)) {
-                registerUser(email, password);
+                checkNicknameUniqueAndRegister(email, password, nickname);
             } else {
                 Toast.makeText(getActivity(), "Passwords do not match.", Toast.LENGTH_SHORT).show();
             }
@@ -80,8 +86,6 @@ public class CreateProfile extends Fragment {
                 updateSelectedGamesTextView();
             }
             gamesAutoComplete.setText("");
-
-
         });
 
         deleteButton.setOnClickListener(v -> {
@@ -94,7 +98,21 @@ public class CreateProfile extends Fragment {
         return view;
     }
 
-    private void registerUser(String email, String password) {
+    private void checkNicknameUniqueAndRegister(String email, String password, String nickname) {
+        databaseReference.orderByChild("nickname").equalTo(nickname).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (task.getResult().getChildrenCount() == 0) {
+                    registerUser(email, password, nickname);
+                } else {
+                    Toast.makeText(getActivity(), "Nickname already exists.", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getActivity(), "Error checking nickname: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void registerUser(String email, String password, String nickname) {
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(getActivity(), "Please enter email and password.", Toast.LENGTH_SHORT).show();
             return;
@@ -103,13 +121,17 @@ public class CreateProfile extends Fragment {
                 .addOnCompleteListener(getActivity(), task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Toast.makeText(getActivity(), "Registration successful.", Toast.LENGTH_SHORT).show();
+                        if (user != null) {
+                            String userId = user.getUid();
+                            UserProfile userProfile = new UserProfile(nickname, selectedGames);
+                            databaseReference.child(userId).setValue(userProfile);
+                            Toast.makeText(getActivity(), "Registration successful.", Toast.LENGTH_SHORT).show();
+                        }
                     } else {
                         Toast.makeText(getActivity(), "Registration failed.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
-
 
     private void updateSelectedGamesTextView() {
         StringBuilder gamesText = new StringBuilder();
@@ -123,5 +145,19 @@ public class CreateProfile extends Fragment {
         SpannableString spannableString = new SpannableString(gamesText.toString());
         spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, gamesText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         gamesSelectedTextView.setText(spannableString);
+    }
+
+    public static class UserProfile {
+        public String nickname;
+        public List<String> favoriteGames;
+
+        public UserProfile() {
+            // Default constructor required for calls to DataSnapshot.getValue(UserProfile.class)
+        }
+
+        public UserProfile(String nickname, List<String> favoriteGames) {
+            this.nickname = nickname;
+            this.favoriteGames = favoriteGames;
+        }
     }
 }

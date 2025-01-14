@@ -14,8 +14,8 @@
             android:id="@+id/action_login_to_createProfileFragment"
             app:destination="@id/fragmentCreateProfile" />
         <action
-            android:id="@+id/action_fragmentLogin_to_nextFragment"
-            app:destination="@id/nextFragment" />
+            android:id="@+id/action_fragmentLogin_to_searchEngine"
+            app:destination="@id/searchEngine" />
     </fragment>
 
     <fragment
@@ -24,8 +24,8 @@
         android:label="Create Profile"
         tools:layout="@layout/fragment_create_profile" />
     <fragment
-        android:id="@+id/nextFragment"
-        android:name="com.example.levelup.Fragments.nextFragment"
-        android:label="fragment_next"
-        tools:layout="@layout/fragment_next" />
+        android:id="@+id/searchEngine"
+        android:name="com.example.levelup.Fragments.SearchEngine"
+        android:label="search_engine"
+        tools:layout="@layout/search_engine" />
 </navigation>
