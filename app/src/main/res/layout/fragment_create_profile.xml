@@ -53,7 +53,7 @@
         android:id="@+id/gamesAutoComplete"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Select Favourite Games"
+        android:hint="Type Favourite Games"
         android:imeOptions="actionDone"
         android:inputType="text"
         app:layout_constraintTop_toBottomOf="@id/retypePasswordField"

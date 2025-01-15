@@ -2,6 +2,7 @@ package com.example.levelup.Fragments;
 
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
@@ -55,7 +56,9 @@ public class SearchEngine extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         userListAdapter = new UserListAdapter(filteredList, user -> {
-            // Handle add friend button click
+            Bundle bundle = new Bundle();
+            bundle.putString("nickname", user.nickname);
+            Navigation.findNavController(getView()).navigate(R.id.action_searchEngine_to_chatFragment, bundle);
         });
         recyclerView.setAdapter(userListAdapter);
 
@@ -127,7 +130,7 @@ public class SearchEngine extends Fragment {
         for (UserProfile user : userList) {
             if (filterOption.equals("Nicknames") && user.nickname.toLowerCase().contains(query.toLowerCase())) {
                 filteredList.add(user);
-            } else if (filterOption.equals("Games")) {
+            } else if (filterOption.equals("Game")) {
                 for (String game : user.favoriteGames) {
                     if (game.toLowerCase().contains(query.toLowerCase())) {
                         filteredList.add(user);

@@ -14,11 +14,11 @@ import java.util.List;
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserViewHolder> {
 
     private List<UserProfile> userList;
-    private OnAddFriendClickListener onAddFriendClickListener;
+    private OnChatUserClickListener onChatUserClickListener;
 
-    public UserListAdapter(List<UserProfile> userList, OnAddFriendClickListener onAddFriendClickListener) {
+    public UserListAdapter(List<UserProfile> userList, OnChatUserClickListener onChatUserClickListener) {
         this.userList = userList;
-        this.onAddFriendClickListener = onAddFriendClickListener;
+        this.onChatUserClickListener = onChatUserClickListener;
     }
 
     @NonNull
@@ -33,7 +33,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
         UserProfile user = userList.get(position);
         holder.nicknameTextView.setText(user.nickname);
         holder.favGamesTextView.setText(String.join(", ", user.favoriteGames));
-        holder.addFriendButton.setOnClickListener(v -> onAddFriendClickListener.onAddFriendClick(user));
+        holder.chatUserButton.setOnClickListener(v -> onChatUserClickListener.onChatUserClick(user));
     }
 
     @Override
@@ -44,17 +44,17 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         TextView nicknameTextView;
         TextView favGamesTextView;
-        ImageButton addFriendButton;
+        ImageButton chatUserButton;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
             nicknameTextView = itemView.findViewById(R.id.nicknameTextView);
             favGamesTextView = itemView.findViewById(R.id.favGamesTextView);
-            addFriendButton = itemView.findViewById(R.id.addFriendButton);
+            chatUserButton = itemView.findViewById(R.id.chatUser);
         }
     }
 
-    public interface OnAddFriendClickListener {
-        void onAddFriendClick(UserProfile user);
+    public interface OnChatUserClickListener {
+        void onChatUserClick(UserProfile user);
     }
 }

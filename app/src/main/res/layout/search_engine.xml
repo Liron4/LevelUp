@@ -21,10 +21,10 @@
 
             <ImageView
                 android:id="@+id/moveToChatButton"
-                android:layout_width="41dp"
-                android:layout_height="33dp"
+                android:layout_width="40dp"
+                android:layout_height="38dp"
                 android:layout_marginStart="4dp"
-                android:src="@drawable/chaticon"
+                android:src="@android:drawable/btn_star_big_on"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -32,37 +32,37 @@
 
             <ImageView
                 android:id="@+id/editDetailsButton"
-                android:layout_width="37dp"
-                android:layout_height="28dp"
-                android:layout_marginStart="16dp"
-                android:src="@drawable/editicon"
+                android:layout_width="38dp"
+                android:layout_height="33dp"
+                android:layout_marginStart="20dp"
+                android:src="@android:drawable/ic_menu_edit"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@id/moveToChatButton"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.7" />
+                app:layout_constraintVertical_bias="0.866" />
 
             <TextView
                 android:id="@+id/nicknameHolder"
                 android:layout_width="177dp"
                 android:layout_height="25dp"
-                android:layout_marginStart="52dp"
+                android:layout_marginStart="24dp"
                 android:text="Welcome"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@id/editDetailsButton"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.869" />
+                app:layout_constraintVertical_bias="0.782" />
 
             <ImageView
                 android:id="@+id/signOutButton"
-                android:layout_width="29dp"
-                android:layout_height="27dp"
+                android:layout_width="31dp"
+                android:layout_height="30dp"
                 android:src="@drawable/logout"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.627"
+                app:layout_constraintHorizontal_bias="0.809"
                 app:layout_constraintStart_toEndOf="@id/nicknameHolder"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.714" />
+                app:layout_constraintVertical_bias="0.761" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 
