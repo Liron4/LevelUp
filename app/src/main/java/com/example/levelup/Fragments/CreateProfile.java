@@ -22,7 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
+import com.example.levelup.models.UserProfile;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,7 +76,7 @@ public class CreateProfile extends Fragment {
         });
 
 
-        String[] games = {"Minecraft", "Fortnite", "Call of Duty", "Call of Duty: Modern Warfare", "Call of Duty: Black Ops", "League of Legends", "Overwatch 2", "Apex Legends", "Valorant", "Genshin Impact", "Cyberpunk 2077", "Elden Ring", "Path of Exile", "Path of Exile 2"};
+        String[] games = {"Minecraft", "Fortnite", "Call of Duty", "Call of Duty: Modern Warfare", "Call of Duty: Black Ops", "League of Legends", "Overwatch 2", "Apex Legends", "Valorant", "Genshin Impact", "Cyberpunk 2077", "Elden Ring", "Path of Exile", "Path of Exile 2, Stardew Valley"};
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, games);
         gamesAutoComplete.setAdapter(adapter);
@@ -149,17 +149,4 @@ public class CreateProfile extends Fragment {
         gamesSelectedTextView.setText(spannableString);
     }
 
-    public static class UserProfile {
-        public String nickname;
-        public List<String> favoriteGames;
-
-        public UserProfile() {
-            // Default constructor required for calls to DataSnapshot.getValue(UserProfile.class)
-        }
-
-        public UserProfile(String nickname, List<String> favoriteGames) {
-            this.nickname = nickname;
-            this.favoriteGames = favoriteGames;
-        }
-    }
 }

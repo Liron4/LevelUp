@@ -1,5 +1,7 @@
 package com.example.levelup.Fragments;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
@@ -57,6 +59,15 @@ public class FragmentLogin extends Fragment {
         loginButton = view.findViewById(R.id.loginButton);
         createProfileButton = view.findViewById(R.id.createProfileButton);
 
+        // Retrieve login details from SharedPreferences
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("LoginPrefs", Context.MODE_PRIVATE);
+        String savedEmail = sharedPreferences.getString("email", "");
+        String savedPassword = sharedPreferences.getString("password", "");
+
+        // Pre-fill the email and password fields
+        emailField.setText(savedEmail);
+        passwordField.setText(savedPassword);
+
         loginButton.setOnClickListener(v -> {
             String email = emailField.getText().toString();
             String password = passwordField.getText().toString();
@@ -80,10 +91,16 @@ public class FragmentLogin extends Fragment {
             return;
         }
 
-
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(getActivity(), task -> {
                     if (task.isSuccessful()) {
+                        // Save login details in SharedPreferences
+                        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("LoginPrefs", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("email", email);
+                        editor.putString("password", password);
+                        editor.apply();
+
                         FirebaseUser user = mAuth.getCurrentUser();
                         Navigation.findNavController(view).navigate(R.id.action_fragmentLogin_to_searchEngine);
                     } else {

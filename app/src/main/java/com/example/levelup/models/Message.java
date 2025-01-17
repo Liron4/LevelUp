@@ -3,12 +3,16 @@ package com.example.levelup.models;
 public class Message {
     private String username;
     private String content;
-    private String time;
+    private long timestamp;
 
-    public Message(String username, String content, String time) {
+    public Message() {
+        // Default constructor required for calls to DataSnapshot.getValue(Message.class)
+    }
+
+    public Message(String username, String content, long timestamp) {
         this.username = username;
         this.content = content;
-        this.time = time;
+        this.timestamp = timestamp;
     }
 
     public String getUsername() {
@@ -19,7 +23,7 @@ public class Message {
         return content;
     }
 
-    public String getTime() {
-        return time;
+    public long getTimestamp() {
+        return timestamp;
     }
 }

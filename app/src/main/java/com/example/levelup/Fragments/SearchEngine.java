@@ -15,7 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import com.example.levelup.R;
 import com.example.levelup.adapters.UserListAdapter;
-import com.example.levelup.Fragments.CreateProfile.UserProfile;
+import com.example.levelup.models.UserProfile;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -55,9 +55,11 @@ public class SearchEngine extends Fragment {
         View view = inflater.inflate(R.layout.search_engine, container, false);
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        userListAdapter = new UserListAdapter(filteredList, user -> {
+        fetchCurrentUserNickname();
+        userListAdapter = new UserListAdapter(filteredList, user -> { //implement click function for adapter
             Bundle bundle = new Bundle();
-            bundle.putString("nickname", user.nickname);
+            bundle.putString("recieverNickname", user.nickname);
+            bundle.putString("currentNickname", nicknameHolder.getText().toString().replace("Welcome ", "").replace("!", ""));
             Navigation.findNavController(getView()).navigate(R.id.action_searchEngine_to_chatFragment, bundle);
         });
         recyclerView.setAdapter(userListAdapter);
@@ -80,7 +82,6 @@ public class SearchEngine extends Fragment {
         });
 
         fetchUsersFromDatabase();
-        fetchCurrentUserNickname();
         return view;
     }
 
@@ -110,9 +111,9 @@ public class SearchEngine extends Fragment {
             databaseReference.child(uid).child("nickname").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    String nickname = dataSnapshot.getValue(String.class);
-                    if (nickname != null) {
-                        nicknameHolder.setText("Welcome " + nickname + "!");
+                    String mynickname = dataSnapshot.getValue(String.class);
+                    if (mynickname != null) {
+                        nicknameHolder.setText("Welcome " + mynickname + "!");
                     }
                 }
 

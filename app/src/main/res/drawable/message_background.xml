@@ -1,0 +1,5 @@
+<!-- res/drawable/semi_transparent_background.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#E6FFFFFF" />
+    <corners android:radius="8dp" />
+</shape>

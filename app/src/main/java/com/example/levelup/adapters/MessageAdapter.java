@@ -1,5 +1,6 @@
 package com.example.levelup.adapters;
 
+import android.icu.text.SimpleDateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.levelup.R;
 import com.example.levelup.models.Message;
+
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
 
@@ -29,7 +33,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Message message = messageList.get(position);
         holder.messageContentTextView.setText(message.getContent());
-        holder.messageTimeTextView.setText(message.getTime());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy HH:mm", Locale.getDefault());
+        String formattedTime = sdf.format(new Date(message.getTimestamp()));
+        holder.messageTimeTextView.setText(formattedTime);
         holder.usernameTextView.setText(message.getUsername());
     }
 

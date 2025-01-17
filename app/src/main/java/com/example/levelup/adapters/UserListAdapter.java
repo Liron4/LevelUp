@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.levelup.R;
-import com.example.levelup.Fragments.CreateProfile.UserProfile;
+import com.example.levelup.models.UserProfile;
 import java.util.List;
 
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserViewHolder> {
