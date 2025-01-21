@@ -45,6 +45,7 @@ public class ChatFragment extends Fragment {
     private String chatPath;
     private String recieverNickname;
     private String currentNickname;
+    private ChildEventListener chatListener;
 
     public ChatFragment() {
         // Required empty public constructor
@@ -77,7 +78,7 @@ public class ChatFragment extends Fragment {
         }
 
         messageList = new ArrayList<>();
-        messageAdapter = new MessageAdapter(messageList);
+        messageAdapter = new MessageAdapter(messageList, currentNickname);
         messagesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         messagesRecyclerView.setAdapter(messageAdapter);
 
@@ -86,6 +87,32 @@ public class ChatFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("ChatFragment", "onResume called");
+        if (chatPath != null) {
+            Log.d("ChatFragment", "Re-attaching chat listener");
+            loadChatHistory();
+            addChatListener();
+        } else {
+            Log.d("ChatFragment", "chatPath is null, listener not re-attached");
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("ChatFragment", "onPause called");
+        if (chatListener != null) {
+            Log.d("ChatFragment", "Removing chat listener");
+            databaseReference.child("chats").child(chatPath).removeEventListener(chatListener);
+            chatListener = null;
+        }
+        Log.d("ChatFragment", "Clearing message list");
+        messageList.clear();
+        messageAdapter.notifyDataSetChanged();
+    }
     private void findUserUidByNickname(String nickname) {
         databaseReference.child("users").orderByChild("nickname").equalTo(nickname)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -145,10 +172,14 @@ public class ChatFragment extends Fragment {
         });
     }
 
+
     private void addChatListener() {
-        databaseReference.child("chats").child(chatPath).addChildEventListener(new ChildEventListener() {
+        Log.d("ChatFragment", "addChatListener called");
+        Log.d("ChatFragment", "Initializing new chatListener");
+        chatListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
+                Log.d("ChatFragment", "onChildAdded called");
                 Message message = dataSnapshot.getValue(Message.class);
                 if (message != null && !message.getUsername().equals(currentNickname)) {
                     messageList.add(message);
@@ -174,9 +205,12 @@ public class ChatFragment extends Fragment {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                Log.d("ChatFragment", "onCancelled called: " + databaseError.getMessage());
                 Toast.makeText(getActivity(), "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        });
+        };
+        Log.d("ChatFragment", "Adding chatListener to databaseReference");
+        databaseReference.child("chats").child(chatPath).addChildEventListener(chatListener);
     }
 
     private void sendMessage() {

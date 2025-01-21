@@ -4,94 +4,135 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F5EBE9"
     tools:context=".Fragments.CreateProfile">
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="411dp"
+        android:layout_height="172dp"
+        android:layout_marginTop="4dp"
+        android:background="#00FFFFFF"
+        android:src="@drawable/gamericonprofilered"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
 
     <EditText
         android:id="@+id/emailField"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:hint="Email"
         android:inputType="textEmailAddress"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView2"
+        android:textColorHint="@color/hintColor"
+        android:textColor="@color/textColor"
+
+        />
 
     <EditText
         android:id="@+id/nicknameField"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:hint="Nickname"
-        app:layout_constraintTop_toBottomOf="@id/emailField"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/emailField"
+        android:textColorHint="@color/hintColor"
+        android:textColor="@color/textColor"
+        />
 
     <EditText
         android:id="@+id/passwordField"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:hint="Password"
         android:inputType="textPassword"
-        app:layout_constraintTop_toBottomOf="@id/nicknameField"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/nicknameField"
+        android:textColorHint="@color/hintColor"
+        android:textColor="@color/textColor"
+        />
 
     <EditText
         android:id="@+id/retypePasswordField"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:hint="Retype Password"
         android:inputType="textPassword"
-        app:layout_constraintTop_toBottomOf="@id/passwordField"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/passwordField"
+        android:textColorHint="@color/hintColor"
+        android:textColor="@color/textColor"
+        />
 
     <AutoCompleteTextView
         android:id="@+id/gamesAutoComplete"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:hint="Type Favourite Games"
+        android:textColorHint="@color/hintColor"
+        android:textColor="@color/textColor"
         android:imeOptions="actionDone"
         android:inputType="text"
-        app:layout_constraintTop_toBottomOf="@id/retypePasswordField"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/retypePasswordField" />
 
     <TextView
         android:id="@+id/selectedGamesTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Selected Games:"
         android:textSize="9.5pt"
         android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/gamesAutoComplete"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/gamesAutoComplete"
+        android:textColor="@color/textColor"
+        />
 
     <TextView
         android:id="@+id/GamesSelected"
-        android:layout_width="398dp"
-        android:layout_height="169dp"
-        android:layout_marginTop="12dp"
+        android:layout_width="406dp"
+        android:layout_height="101dp"
+        android:layout_marginTop="16dp"
         android:text=""
         android:textSize="8pt"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.461"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/selectedGamesTextView" />
+        app:layout_constraintTop_toBottomOf="@id/selectedGamesTextView"
+        android:textColor="@color/textColor"
+        />
 
     <ImageButton
         android:id="@+id/DeleteButton"
         android:layout_width="44dp"
         android:layout_height="47dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         android:contentDescription="Delete last game"
         android:src="@android:drawable/ic_delete"
+        app:layout_constraintBottom_toTopOf="@+id/registerButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
@@ -99,13 +140,17 @@
 
     <Button
         android:id="@+id/registerButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="373dp"
+        android:layout_height="49dp"
         android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@android:color/holo_red_light"
         android:text="Register"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.421"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/DeleteButton" />
+        app:layout_constraintTop_toBottomOf="@+id/DeleteButton"
+        app:layout_constraintVertical_bias="0.923" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
