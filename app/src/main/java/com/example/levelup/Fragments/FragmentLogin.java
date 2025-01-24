@@ -1,10 +1,13 @@
 package com.example.levelup.Fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +15,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.levelup.services.MessageListenerService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import com.example.levelup.R;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class FragmentLogin extends Fragment {
 
@@ -94,15 +100,26 @@ public class FragmentLogin extends Fragment {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(getActivity(), task -> {
                     if (task.isSuccessful()) {
-                        // Save login details in SharedPreferences
-                        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("LoginPrefs", Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString("email", email);
-                        editor.putString("password", password);
-                        editor.apply();
-
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Navigation.findNavController(view).navigate(R.id.action_fragmentLogin_to_searchEngine);
+                        if (user != null) {
+                            String uid = user.getUid();
+
+                            // Save login details and UID in SharedPreferences
+                            SharedPreferences sharedPreferences = getActivity().getSharedPreferences("LoginPrefs", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("email", email);
+                            editor.putString("password", password);
+                            editor.putString("uid", uid);
+                            editor.apply();
+
+                            // Send update to MessageListenerService
+                            Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
+                            serviceIntent.putExtra("newUid", uid);
+                            getContext().startService(serviceIntent);
+
+                            // Navigate to the SearchEngine fragment
+                            Navigation.findNavController(view).navigate(R.id.action_fragmentLogin_to_searchEngine);
+                        }
                     } else {
                         Toast.makeText(getActivity(), "Authentication Failed.", Toast.LENGTH_SHORT).show();
                     }

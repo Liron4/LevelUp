@@ -125,7 +125,7 @@ public class CreateProfile extends Fragment {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             String userId = user.getUid();
-                            UserProfile userProfile = new UserProfile(nickname, selectedGames);
+                            UserProfile userProfile = new UserProfile(nickname, selectedGames, null, null);
                             databaseReference.child(userId).setValue(userProfile);
                             Toast.makeText(getActivity(), "Registration successful.", Toast.LENGTH_SHORT).show();
                         }

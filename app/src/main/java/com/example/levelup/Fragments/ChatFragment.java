@@ -1,5 +1,6 @@
 package com.example.levelup.Fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.levelup.R;
 import com.example.levelup.adapters.MessageAdapter;
 import com.example.levelup.models.Message;
+import com.example.levelup.services.MessageListenerService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -45,6 +47,7 @@ public class ChatFragment extends Fragment {
     private String chatPath;
     private String recieverNickname;
     private String currentNickname;
+    private String receiverUid; // Global variable for receiver UID
     private ChildEventListener chatListener;
 
     public ChatFragment() {
@@ -84,8 +87,11 @@ public class ChatFragment extends Fragment {
 
         sendButton.setOnClickListener(v -> sendMessage());
 
+
         return view;
     }
+
+
 
     @Override
     public void onResume() {
@@ -98,6 +104,10 @@ public class ChatFragment extends Fragment {
         } else {
             Log.d("ChatFragment", "chatPath is null, listener not re-attached");
         }
+        // Update the service to re-ignore the chat
+        Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
+        serviceIntent.putExtra("receiverUid", receiverUid);
+        getContext().startService(serviceIntent);
     }
 
     @Override
@@ -112,7 +122,13 @@ public class ChatFragment extends Fragment {
         Log.d("ChatFragment", "Clearing message list");
         messageList.clear();
         messageAdapter.notifyDataSetChanged();
+
+        // Update the service to ignore no one
+        Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
+        serviceIntent.putExtra("receiverUid", (String) null);
+        getContext().startService(serviceIntent);
     }
+
     private void findUserUidByNickname(String nickname) {
         databaseReference.child("users").orderByChild("nickname").equalTo(nickname)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -120,8 +136,12 @@ public class ChatFragment extends Fragment {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
                             for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                                String receiverUid = userSnapshot.getKey();
+                                receiverUid = userSnapshot.getKey(); // Set global variable
                                 setupChatPath(receiverUid);
+                                // Ignore notifications from current chat
+                                Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
+                                serviceIntent.putExtra("receiverUid", receiverUid);
+                                getContext().startService(serviceIntent);
                                 break;
                             }
                         } else {
@@ -172,7 +192,6 @@ public class ChatFragment extends Fragment {
         });
     }
 
-
     private void addChatListener() {
         Log.d("ChatFragment", "addChatListener called");
         Log.d("ChatFragment", "Initializing new chatListener");
@@ -217,12 +236,17 @@ public class ChatFragment extends Fragment {
         String messageContent = messageEditText.getText().toString().trim();
         if (!messageContent.isEmpty() && chatPath != null) {
             long currentTime = System.currentTimeMillis();
-            Message message = new Message(currentNickname, messageContent, currentTime);
-            databaseReference.child("chats").child(chatPath).push().setValue(message);
-            messageList.add(message);
-            messageAdapter.notifyItemInserted(messageList.size() - 1);
-            messagesRecyclerView.scrollToPosition(messageList.size() - 1);
-            messageEditText.setText("");
+            FirebaseUser currentUser = mAuth.getCurrentUser();
+            if (currentUser != null) {
+                String currentUserUid = currentUser.getUid();
+                Message message = new Message(currentNickname, messageContent, currentTime, currentUserUid, receiverUid, false);
+                databaseReference.child("chats").child(chatPath).push().setValue(message);
+                databaseReference.child("notifications").child(receiverUid).push().setValue(message); // to add future TTL mechanism
+                messageList.add(message);
+                messageAdapter.notifyItemInserted(messageList.size() - 1);
+                messagesRecyclerView.scrollToPosition(messageList.size() - 1);
+                messageEditText.setText("");
+            }
         }
     }
 }
