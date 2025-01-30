@@ -83,13 +83,16 @@ public class ChatFragment extends Fragment {
         msgrecievername = view.findViewById(R.id.nicknameTextView);
         favPersonButton = view.findViewById(R.id.favpersonbutton);
         blockButton = view.findViewById(R.id.blockbutton);
-        messageList = new ArrayList<>();
-        messageAdapter = new MessageAdapter(messageList, currentNickname);
 
         if (recieverNickname != null) {
             msgrecievername.setText(recieverNickname);
             findUserUidByNickname(recieverNickname);
         }
+
+        messageList = new ArrayList<>();
+        messageAdapter = new MessageAdapter(messageList, currentNickname);
+        messagesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        messagesRecyclerView.setAdapter(messageAdapter);
 
 
 
@@ -168,98 +171,29 @@ public class ChatFragment extends Fragment {
                 chatPath = receiverUid + "_" + currentUserUid;
             }
             Log.d("ChatPath", "Chat path: " + chatPath);
-            initializeChat();
+            loadChatHistory();
             addChatListener();
         }
     }
 
-    private static final int MESSAGE_LOAD_LIMIT = 50;
-    private boolean isLoadingMessages = false;
-    private boolean allMessagesLoaded = false;
-    private String lastMessageKey = null;
-    private LinearLayoutManager layoutManager;
-
-    private void loadChatHistory(final boolean initialLoad) {
-        if (isLoadingMessages || allMessagesLoaded) return;
-
-        isLoadingMessages = true;
-        Query messageQuery;
-        if (lastMessageKey == null) {
-            messageQuery = databaseReference.child("chats").child(chatPath)
-                    .orderByKey().limitToLast(MESSAGE_LOAD_LIMIT);
-        } else {
-            messageQuery = databaseReference.child("chats").child(chatPath)
-                    .orderByKey().endAt(lastMessageKey).limitToLast(MESSAGE_LOAD_LIMIT + 1);
-        }
-
-        messageQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+    private void loadChatHistory() {
+        databaseReference.child("chats").child(chatPath).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<Message> newMessages = new ArrayList<>();
+                messageList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Message message = snapshot.getValue(Message.class);
-                    newMessages.add(message);
+                    messageList.add(message);
                 }
-
-                // Remove duplicate last message from previous batch
-                if (lastMessageKey != null && !newMessages.isEmpty()) {
-                    newMessages.remove(newMessages.size() - 1);
-                }
-
-                // If fewer than expected messages were loaded, mark as all loaded
-                if (newMessages.size() < MESSAGE_LOAD_LIMIT) {
-                    allMessagesLoaded = true;
-                    Toast.makeText(getContext(), "All messages are displayed.", Toast.LENGTH_SHORT).show();
-                }
-
-                if (!newMessages.isEmpty()) {
-                    lastMessageKey = dataSnapshot.getChildren().iterator().next().getKey();
-                    // Set correct key
-                    messageList.addAll(0, newMessages);
-                    messageAdapter.notifyItemRangeInserted(0, newMessages.size());
-
-                    // Preserve scroll position when loading more
-                    if (initialLoad) {
-                        messagesRecyclerView.scrollToPosition(messageList.size() - 1);
-                    } else {
-                        layoutManager.scrollToPositionWithOffset(newMessages.size(), 0);
-                    }
-                }
-
-                isLoadingMessages = false;
+                messageAdapter.notifyDataSetChanged();
+                messagesRecyclerView.scrollToPosition(messageList.size() - 1);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                isLoadingMessages = false;
-                if (databaseError.getCode() == DatabaseError.PERMISSION_DENIED) {
-                    allMessagesLoaded = true;
-                }
                 Toast.makeText(getContext(), "Error loading chat history: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private void setupRecyclerView() {
-        layoutManager = new LinearLayoutManager(getContext());
-        messagesRecyclerView.setLayoutManager(layoutManager);
-        messagesRecyclerView.setAdapter(messageAdapter);
-
-        messagesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if (layoutManager.findFirstVisibleItemPosition() == 0 && !isLoadingMessages && !allMessagesLoaded) {
-                    loadChatHistory(false);
-                }
-            }
-        });
-    }
-
-    // Call this method in onCreateView after initializing the RecyclerView and messageAdapter
-    private void initializeChat() {
-        setupRecyclerView();
-        loadChatHistory(true);
     }
 
     private void addChatListener() {
