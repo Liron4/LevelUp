@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,27 +14,40 @@
         android:orientation="horizontal"
         android:padding="8dp">
 
-        <Button
-            android:id="@+id/exitChatButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Exit" />
+        <ImageButton
+            android:id="@+id/returnButton"
+            android:layout_width="57dp"
+            android:layout_height="59dp"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/transparent"
+            android:scaleType="centerInside"
+            android:src="@drawable/returnicon" />
 
         <TextView
             android:id="@+id/nicknameTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_width="249dp"
+            android:layout_height="61dp"
             android:layout_weight="1"
             android:gravity="center"
             android:text="Nickname"
-            android:textStyle="bold"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/blockButton"
+        <ImageButton
+            android:id="@+id/favpersonbutton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Block" />
+            android:layout_height="63dp"
+            android:backgroundTint="@android:color/transparent"
+            android:src="@android:drawable/star_big_off" />
+
+        <ImageButton
+            android:id="@+id/blockbutton"
+            android:layout_width="32dp"
+            android:layout_height="60dp"
+            android:background="@android:color/transparent"
+            android:backgroundTint="@android:color/transparent"
+            android:scaleType="centerInside"
+            android:src="@drawable/blockbtn" />
     </LinearLayout>
 
     <!-- RecyclerView for messages -->

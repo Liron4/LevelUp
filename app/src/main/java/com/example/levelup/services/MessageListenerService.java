@@ -14,6 +14,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import com.example.levelup.MainActivity;
+import com.example.levelup.NotificationHandlerActivity;
 import com.example.levelup.R;
 import com.example.levelup.models.Message;
 import com.google.firebase.database.ChildEventListener;
@@ -48,33 +49,18 @@ public class MessageListenerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String newUid = intent.getStringExtra("newUid");
-        String newReceiverUid = intent.getStringExtra("receiverUid");
+        String newUid = intent.getStringExtra("newUid"); // listen to this user notifications
+        String newReceiverUid = intent.getStringExtra("receiverUid"); //ignore notifications from this user
 
-        boolean shouldUpdateListener = false;
-
-        // Check if currentUid has changed
-        if (newUid != null && !newUid.equals(currentUid)) {
+        Log.d("MessageListenerService", "Listener updated with current UID: " + currentUid + " and receiver UID: " + receiverUid);
+        if (newUid != null) {
             currentUid = newUid;
-            shouldUpdateListener = true;
         }
+            receiverUid = newReceiverUid; // ignore notifications from this user, if its null -> listen to all notifications
 
-        // Check if receiverUid has changed
-        if ((newReceiverUid != null && !newReceiverUid.equals(receiverUid)) || (newReceiverUid == null && receiverUid != null)) {
-            receiverUid = newReceiverUid;
-            shouldUpdateListener = true;
-        }
-
-        Log.d("MessageListenerService", "Receiver UID: " + receiverUid + " newRecieverUid: " + newReceiverUid);
-
-        // Update listener only if necessary
-        if (shouldUpdateListener) {
+        if (currentUid != null) {
             listenForMessages(currentUid, receiverUid);
-            Log.d("MessageListenerService", "Listener updated with current UID: " + currentUid + " and receiver UID: " + receiverUid);
-        } else {
-            Log.d("MessageListenerService", "No changes detected. Listener not updated.");
         }
-
         return START_STICKY;
     }
 
@@ -106,7 +92,7 @@ public class MessageListenerService extends Service {
                         // Set notificationsent to true
                         dataSnapshot.getRef().child("notificationSent").setValue(true);
                     } else {
-                        // Set notificationsent to true regardless of whether the notification was sent or ignored
+                        // Set notificationsent to true so he wont be notified after he exits chat
                         dataSnapshot.getRef().child("notificationSent").setValue(true);
                         Log.d("MessageListenerService", "Ignoring notification from current chat user: " + message.getUsername());
                     }
@@ -147,7 +133,9 @@ public class MessageListenerService extends Service {
     private void sendNotification(Message message) {
         String groupKey = "com.example.levelup.NOTIFICATIONS_" + message.getFrom();
 
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, NotificationHandlerActivity.class);
+        intent.putExtra("senderUsername", message.getUsername());
+        intent.putExtra("senderUid", message.getFrom());
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
