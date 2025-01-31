@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         // Start the msg service
         Intent serviceIntent = new Intent(this, MessageListenerService.class);
         startService(serviceIntent);

@@ -1,5 +1,7 @@
 package com.example.levelup.adapters;
 
+import android.icu.text.SimpleDateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +11,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.levelup.R;
 import com.example.levelup.models.UserProfile;
+
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserViewHolder> {
 
@@ -30,10 +35,26 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserVi
 
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
-        UserProfile user = userList.get(position);
-        holder.nicknameTextView.setText(user.nickname);
-        holder.favGamesTextView.setText(String.join(", ", user.favoriteGames));
-        holder.chatUserButton.setOnClickListener(v -> onChatUserClickListener.onChatUserClick(user));
+        UserProfile userProfile = userList.get(position);
+        if (userProfile != null) {
+            Log.d("UserListAdapter", "Binding user: " + userProfile.nickname);
+            holder.nicknameTextView.setText(userProfile.nickname);
+            if (userProfile.favoriteGames != null) {
+                holder.favGamesTextView.setText(String.join(", ", userProfile.favoriteGames));
+            }
+            else {
+                if (userProfile.timestamp == 0) {
+                    holder.favGamesTextView.setText("No messages yet");
+                }
+                else {
+                String formattedTimestamp = new SimpleDateFormat("HH:mm dd/MM/yy", Locale.getDefault()).format(new Date(userProfile.timestamp));
+                holder.favGamesTextView.setText(userProfile.latestMessage + " | " + formattedTimestamp);
+                }
+            }
+            holder.chatUserButton.setOnClickListener(v -> onChatUserClickListener.onChatUserClick(userProfile));
+        } else {
+            Log.e("UserListAdapter", "UserProfile at position " + position + " is null");
+        }
     }
 
     @Override

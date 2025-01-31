@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import com.example.levelup.R;
@@ -36,6 +37,8 @@ public class SearchEngine extends Fragment {
     private EditText searchEngine;
     private Spinner filterSpinner;
     private TextView nicknameHolder;
+
+    ImageView moveToContactsButton;
 
     public SearchEngine() {
         // Required empty public constructor
@@ -81,7 +84,15 @@ public class SearchEngine extends Fragment {
             public void afterTextChanged(Editable s) {}
         });
 
+        moveToContactsButton = view.findViewById(R.id.moveToContactsButton);
+        moveToContactsButton.setOnClickListener(v -> {
+            Navigation.findNavController(view).navigate(R.id.action_searchEngine_to_contactsList);
+        });
+
         fetchUsersFromDatabase();
+
+
+
         return view;
     }
 

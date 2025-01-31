@@ -6,6 +6,10 @@ public class UserProfile {
     public String nickname;
     public List<String> favoriteGames;
 
+    public String latestMessage;
+
+    public long timestamp;
+
     public List<String> favList;
     public List<String> blockedList;
 
