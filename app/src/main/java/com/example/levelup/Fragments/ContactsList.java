@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -96,7 +97,7 @@ public class ContactsList extends Fragment {
     private void updateRecyclerViewWithNewMessage(String nickname, String latestMessage, long timestamp) {
         for (UserProfile userProfile : userList) {
             if (userProfile.nickname.equals(nickname)) {
-                userProfile.latestMessage = latestMessage +" 🔵";
+                userProfile.latestMessage = latestMessage + " 🟣";
                 userProfile.timestamp = timestamp;
                 userList.remove(userProfile);
                 userList.add(0, userProfile);
@@ -114,11 +115,15 @@ public class ContactsList extends Fragment {
         TextView titleTextView = view.findViewById(R.id.titleTextView);
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        fetchUserNicknameAndSetTitle(titleTextView);
         userListAdapter = new UserListAdapter(userList, user -> {
-            // Handle user click
+            Bundle bundle = new Bundle();
+            bundle.putString("recieverNickname", user.nickname);
+            bundle.putString("currentNickname", CurrentUsernickname);
+            Navigation.findNavController(getView()).navigate(R.id.action_contactsList_to_chatFragment, bundle);
         });
         recyclerView.setAdapter(userListAdapter);
-        fetchUserNicknameAndSetTitle(titleTextView);
+
         fetchFavoriteList();
         Log.d("ContactsList", "onCreateView finished");
 

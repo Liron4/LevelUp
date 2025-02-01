@@ -30,7 +30,9 @@
         tools:layout="@layout/search_engine" >
         <action
             android:id="@+id/action_searchEngine_to_chatFragment"
-            app:destination="@id/chatFragment" />
+            app:destination="@id/chatFragment"
+            app:popUpTo="@id/searchEngine"
+            app:popUpToInclusive="false" />
         <action
             android:id="@+id/action_searchEngine_to_contactsList"
             app:destination="@id/contactsList" />
@@ -43,12 +45,20 @@
         <action
             android:id="@+id/action_chatFragment_to_searchEngine"
             app:destination="@id/searchEngine"
-            app:popUpTo="@id/chatFragment"
-            app:popUpToInclusive="true" />
+            />
+        <action
+            android:id="@+id/action_chatFragment_to_contactsList"
+            app:destination="@id/contactsList" />
     </fragment>
     <fragment
         android:id="@+id/contactsList"
         android:name="com.example.levelup.Fragments.ContactsList"
         android:label="fragment_contacts_list"
-        tools:layout="@layout/fragment_contacts_list" />
+        tools:layout="@layout/fragment_contacts_list" >
+        <action
+            android:id="@+id/action_contactsList_to_chatFragment"
+            app:destination="@id/chatFragment"
+            app:popUpTo="@id/contactsList"
+            app:popUpToInclusive="false" />
+    </fragment>
 </navigation>

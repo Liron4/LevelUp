@@ -15,6 +15,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.levelup.R;
@@ -94,42 +96,73 @@ public class ChatFragment extends Fragment {
         messagesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         messagesRecyclerView.setAdapter(messageAdapter);
 
-
+        checkIfFavorite();
 
         sendButton.setOnClickListener(v -> sendMessage());
 
-        favPersonButton.setOnClickListener(v -> handleFavPersonButtonClick());
+        favPersonButton.setOnClickListener(v -> toggleFavoriteStatus());
 
         blockButton.setOnClickListener(v -> showBlockConfirmationDialog());
 
         return view;
     }
 
-    // to add future onResume method
 
     @Override
     public void onPause() {
         super.onPause();
-        Log.d("ChatFragment", "onPause called");
+        Log.d("ChatFragment", "onPause called - delegating to onDestroyView()");
+        Log.d("ChatFragment", "Ensuring cleanup");
+
+        // ניקוי האזנה להודעות צ'אט
         if (chatListener != null) {
             Log.d("ChatFragment", "Removing chat listener");
             databaseReference.child("chats").child(chatPath).removeEventListener(chatListener);
             chatListener = null;
         }
+
+        // ניקוי רשימת ההודעות
         Log.d("ChatFragment", "Clearing message list");
         messageList.clear();
         messageAdapter.notifyDataSetChanged();
 
-        // Update the service to ignore no one
+        // עדכון השירות שלא להאזין יותר
         Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
         serviceIntent.putExtra("receiverUid", (String) null);
         getContext().startService(serviceIntent);
 
-        // Remove the fragment using the FragmentManager
-        if (getParentFragmentManager() != null) {
-            getParentFragmentManager().beginTransaction().remove(this).commit(); // future update: implement better navigation
-        }
     }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("ChatFragment", "onResume called");
+
+        // Check if the given items for the fragment are updated
+        if (getArguments() != null) {
+            String newRecieverNickname = getArguments().getString("recieverNickname");
+            String newCurrentNickname = getArguments().getString("currentNickname");
+
+            if (newRecieverNickname != null && !newRecieverNickname.equals(recieverNickname)) {
+                recieverNickname = newRecieverNickname;
+                msgrecievername.setText(recieverNickname);
+                findUserUidByNickname(recieverNickname);
+            } else if (receiverUid != null) {
+                setupChatPath(receiverUid);
+            }
+
+            if (newCurrentNickname != null && !newCurrentNickname.equals(currentNickname)) {
+                currentNickname = newCurrentNickname;
+            }
+        }
+
+        // Check if the person is in the favorites list and update the button image
+        checkIfFavorite();
+    }
+
+
+
 
     private void findUserUidByNickname(String nickname) {
         databaseReference.child("users").orderByChild("nickname").equalTo(nickname)
@@ -139,10 +172,6 @@ public class ChatFragment extends Fragment {
                         if (dataSnapshot.exists()) {
                             for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                                 receiverUid = userSnapshot.getKey(); // Set global variable
-                                // Ignore notifications from current chat
-                                Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
-                                serviceIntent.putExtra("receiverUid", receiverUid);
-                                getContext().startService(serviceIntent);
                                 // Set up chat path
                                 setupChatPath(receiverUid);
 
@@ -161,6 +190,13 @@ public class ChatFragment extends Fragment {
     }
 
     private void setupChatPath(String receiverUid) {
+
+        // Ignore notifications from current chat
+        Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
+        serviceIntent.putExtra("receiverUid", receiverUid);
+        getContext().startService(serviceIntent);
+
+
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String currentUserUid = currentUser.getUid();
@@ -288,7 +324,7 @@ public class ChatFragment extends Fragment {
         }
     }
 
-    private void handleFavPersonButtonClick() {
+    private void toggleFavoriteStatus() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String currentUserUid = currentUser.getUid();
@@ -299,21 +335,54 @@ public class ChatFragment extends Fragment {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
                     if (userProfile != null) {
-                        List<String> favList = userProfile.favList != null ? userProfile.favList : new ArrayList<>();
-                        if (favList.contains(recieverNickname)) {
-                            favList.remove(recieverNickname);
-                            Toast.makeText(getContext(), recieverNickname + " has been removed from your favourites.", Toast.LENGTH_SHORT).show();
-                        } else {
-                            favList.add(recieverNickname);
-                            Toast.makeText(getContext(), recieverNickname + " has been added to your favourites.", Toast.LENGTH_SHORT).show();
+                        if (userProfile.favList == null) {
+                            userProfile.favList = new ArrayList<>();
                         }
-                        userRef.child("favList").setValue(favList);
+
+                        if (userProfile.favList.contains(recieverNickname)) {
+                            userProfile.favList.remove(recieverNickname);
+                            favPersonButton.setImageResource(android.R.drawable.star_big_off);
+                        } else {
+                            userProfile.favList.add(recieverNickname);
+                            favPersonButton.setImageResource(android.R.drawable.star_big_on);
+                        }
+
+                        userRef.setValue(userProfile);
                     }
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    Toast.makeText(getContext(), "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("ChatFragment", "Failed to update user data: " + databaseError.getMessage());
+                }
+            });
+        }
+    }
+
+
+
+
+
+    private void checkIfFavorite() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String currentUserUid = currentUser.getUid();
+            DatabaseReference userRef = databaseReference.child("users").child(currentUserUid);
+
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    UserProfile userProfile = dataSnapshot.getValue(UserProfile.class);
+                    if (userProfile != null && userProfile.favList != null && userProfile.favList.contains(recieverNickname)) {
+                        favPersonButton.setImageResource(android.R.drawable.star_big_on);
+                    } else {
+                        favPersonButton.setImageResource(android.R.drawable.star_big_off);
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e("ChatFragment", "Failed to fetch user data: " + databaseError.getMessage());
                 }
             });
         }
@@ -390,6 +459,8 @@ public class ChatFragment extends Fragment {
             });
         }
     }
+
+
 
 
 }

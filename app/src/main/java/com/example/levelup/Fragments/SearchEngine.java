@@ -97,13 +97,17 @@ public class SearchEngine extends Fragment {
     }
 
     private void fetchUsersFromDatabase() {
+
+
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 userList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     UserProfile user = snapshot.getValue(UserProfile.class);
-                    userList.add(user);
+                    if (user != null && !snapshot.getKey().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                        userList.add(user);
+                    }
                 }
                 filterUsers(searchEngine.getText().toString());
             }
