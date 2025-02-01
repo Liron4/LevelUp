@@ -75,8 +75,7 @@ public class CreateProfile extends Fragment {
             }
         });
 
-
-        String[] games = {"Minecraft", "Fortnite", "Call of Duty", "Call of Duty: Modern Warfare", "Call of Duty: Black Ops", "League of Legends", "Overwatch 2", "Apex Legends", "Valorant", "Genshin Impact", "Cyberpunk 2077", "Elden Ring", "Path of Exile", "Path of Exile 2, Stardew Valley"};
+        String[] games = getResources().getStringArray(R.array.games_array);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, games);
         gamesAutoComplete.setAdapter(adapter);

@@ -1,5 +1,9 @@
 package com.example.levelup.Fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -10,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.example.levelup.R;
 import com.example.levelup.adapters.UserListAdapter;
@@ -37,6 +42,11 @@ public class ContactsList extends Fragment {
     private List<UserProfile> userList;
     private DatabaseReference databaseReference;
     private FirebaseAuth mAuth;
+    private String CurrentUsernickname;
+
+    private BroadcastReceiver messageReceiver;
+
+
 
     public ContactsList() {
         // Required empty public constructor
@@ -48,6 +58,52 @@ public class ContactsList extends Fragment {
         userList = new ArrayList<>();
         databaseReference = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
         mAuth = FirebaseAuth.getInstance(); // Ensure mAuth is initialized here
+
+        // Initialize the BroadcastReceiver
+        messageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if ("com.example.levelup.NEW_MESSAGE".equals(intent.getAction())) {
+                    String fromUid = intent.getStringExtra("from");
+                    String content = intent.getStringExtra("content");
+                    long timestamp = intent.getLongExtra("timestamp", 0);
+                    handleNewMessage(fromUid, content, timestamp);
+                }
+            }
+        };
+
+    }
+
+    public void handleNewMessage(String fromUid, String content, long timestamp) {
+        // Fetch the nickname from the UID
+        DatabaseReference userRef = databaseReference.child("users").child(fromUid).child("nickname");
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String nickname = dataSnapshot.getValue(String.class);
+                if (nickname != null) {
+                    updateRecyclerViewWithNewMessage(nickname, content, timestamp);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("ContactsList", "Failed to fetch nickname for user: " + fromUid + ". Error: " + databaseError.getMessage());
+            }
+        });
+    }
+
+    private void updateRecyclerViewWithNewMessage(String nickname, String latestMessage, long timestamp) {
+        for (UserProfile userProfile : userList) {
+            if (userProfile.nickname.equals(nickname)) {
+                userProfile.latestMessage = latestMessage +" 🔵";
+                userProfile.timestamp = timestamp;
+                userList.remove(userProfile);
+                userList.add(0, userProfile);
+                userListAdapter.notifyDataSetChanged();
+                return;
+            }
+        }
     }
 
     @Override
@@ -55,17 +111,63 @@ public class ContactsList extends Fragment {
                              Bundle savedInstanceState) {
         Log.d("ContactsList", "onCreateView started");
         View view = inflater.inflate(R.layout.fragment_contacts_list, container, false);
+        TextView titleTextView = view.findViewById(R.id.titleTextView);
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         userListAdapter = new UserListAdapter(userList, user -> {
             // Handle user click
         });
         recyclerView.setAdapter(userListAdapter);
-
+        fetchUserNicknameAndSetTitle(titleTextView);
         fetchFavoriteList();
         Log.d("ContactsList", "onCreateView finished");
 
         return view;
+    }
+
+    private void fetchUserNicknameAndSetTitle(TextView titleTextView) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Log.e("FirebaseAuth", "User is not logged in! Aborting fetchUserNicknameAndSetTitle.");
+            return;
+        }
+
+        String currentUserUid = currentUser.getUid();
+        DatabaseReference userRef = databaseReference.child("users").child(currentUserUid).child("nickname");
+
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                CurrentUsernickname = dataSnapshot.getValue(String.class);
+                if (CurrentUsernickname != null) {
+                    titleTextView.setText(CurrentUsernickname + "'s Contact List");
+                } else {
+                    Log.w("ContactsList", "Nickname not found for user: " + currentUserUid);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("ContactsList", "Failed to fetch nickname for user: " + currentUserUid + ". Error: " + databaseError.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("ContactsList", "onPause called");
+        getContext().unregisterReceiver(messageReceiver);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("ContactsList", "onResume called");
+        fetchFavoriteList();
+        // Register the BroadcastReceiver
+        IntentFilter filter = new IntentFilter("com.example.levelup.NEW_MESSAGE");
+        getContext().registerReceiver(messageReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
     }
 
     private void fetchFavoriteList() {
@@ -138,7 +240,7 @@ public class ContactsList extends Fragment {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         String userUid = snapshot.getKey();
                         Log.d("ContactsList", "Found user UID: " + userUid + " for nickname: " + nickname);
-                        fetchLatestMessageForUser(userUid, tempUserList, favList.size());
+                        fetchLatestMessageForUser(userUid, nickname, tempUserList, favList.size());
                     }
                 }
 
@@ -158,7 +260,7 @@ public class ContactsList extends Fragment {
         }
     }
 
-    private void fetchLatestMessageForUser(String userUid, List<UserProfile> tempUserList, int favListSize) {
+    private void fetchLatestMessageForUser(String userUid, String favNickname, List<UserProfile> tempUserList, int favListSize) {
         Log.d("ContactsList", "Fetching latest message for user UID: " + userUid);
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -179,7 +281,7 @@ public class ContactsList extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
                     Log.w("ContactsList", "No chat path found for: " + chatPath);
-                    addUserProfileWithNoMessages(userUid, tempUserList);
+                    addUserProfileWithNoMessages(userUid, favNickname, tempUserList);
                     checkIfFinished();
                     return;
                 }
@@ -189,7 +291,7 @@ public class ContactsList extends Fragment {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (!dataSnapshot.exists()) {
                             Log.w("ContactsList", "No messages found for chat path: " + chatPath);
-                            addUserProfileWithNoMessages(userUid, tempUserList);
+                            addUserProfileWithNoMessages(userUid, favNickname, tempUserList);
                             checkIfFinished();
                             return;
                         }
@@ -198,8 +300,12 @@ public class ContactsList extends Fragment {
                             Message message = snapshot.getValue(Message.class);
                             if (message != null) {
                                 UserProfile userProfile = new UserProfile();
-                                userProfile.nickname = message.getUsername();  // Assuming nickname is stored
-                                userProfile.latestMessage = message.getContent();
+                                userProfile.nickname = favNickname;  // Use favNickname from favList
+                                if (message.getUsername().equals(CurrentUsernickname)) {
+                                    userProfile.latestMessage = "You: " + message.getContent();
+                                } else {
+                                    userProfile.latestMessage = message.getContent();
+                                }
                                 userProfile.timestamp = message.getTimestamp();
                                 tempUserList.add(userProfile);
                                 Log.d("ContactsList", "Message fetched: " + message.getContent());
@@ -232,27 +338,13 @@ public class ContactsList extends Fragment {
         });
     }
 
-    private void addUserProfileWithNoMessages(String userUid, List<UserProfile> tempUserList) {
-        Query userQuery = databaseReference.child("users").child(userUid).child("nickname");
-        userQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String nickname = dataSnapshot.getValue(String.class);
-                if (nickname != null) {
-                    UserProfile userProfile = new UserProfile();
-                    userProfile.nickname = nickname;
-                    userProfile.latestMessage = "No recent messages";
-                    userProfile.timestamp = 0;
-                    tempUserList.add(userProfile);
-                    Log.d("ContactsList", "Added user with no messages: " + nickname);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("ContactsList", "Failed to fetch nickname for user: " + userUid + ". Error: " + databaseError.getMessage());
-            }
-        });
+    private void addUserProfileWithNoMessages(String userUid, String favNickname, List<UserProfile> tempUserList) {
+        UserProfile userProfile = new UserProfile();
+        userProfile.nickname = favNickname;
+        userProfile.latestMessage = "No recent messages";
+        userProfile.timestamp = 0;
+        tempUserList.add(userProfile);
+        Log.d("ContactsList", "Added user with no messages: " + favNickname);
     }
 
     private void sortAndDisplayUsers(List<UserProfile> tempUserList) {

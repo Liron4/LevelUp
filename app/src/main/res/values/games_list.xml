@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="games_array">
+        <item>Minecraft</item>
+        <item>Fortnite</item>
+        <item>Call of Duty</item>
+        <item>Call of Duty: Modern Warfare</item>
+        <item>Call of Duty: Black Ops</item>
+        <item>League of Legends</item>
+        <item>Overwatch 2</item>
+        <item>Apex Legends</item>
+        <item>Valorant</item>
+        <item>Genshin Impact</item>
+        <item>Cyberpunk 2077</item>
+        <item>Elden Ring</item>
+        <item>Path of Exile</item>
+        <item>Path of Exile 2</item>
+        <item>Stardew Valley</item>
+        <item>Rocket League</item>
+        <item>PUBG</item>
+        <item>Destiny 2</item>
+        <item>Fall Guys</item>
+        <item>Among Us</item>
+        <item>Rainbow Six Siege</item>
+        <item>DOTA 2</item>
+        <item>Counter-Strike: Global Offensive</item>
+        <item>Monster Hunter: World</item>
+        <item>Warframe</item>
+        <item>World of Warcraft</item>
+        <item>Rust</item>
+        <item>Sea of Thieves</item>
+        <item>The Division 2</item>
+        <item>Battlefield V</item>
+        <item>Halo Infinite</item>
+        <item>Phasmophobia</item>
+        <item>Hunt: Showdown</item>
+        <item>Terraria</item>
+        <item>H1Z1</item>
+        <item>Smite</item>
+        <item>Team Fortress 2</item>
+        <item>Paladins</item>
+    </string-array>
+</resources>

@@ -89,6 +89,14 @@ public class MessageListenerService extends Service {
                         Log.d("MessageListenerService", "New notification from: " + message.getUsername() + ", ID: " + dataSnapshot.getKey());
                         sendNotification(message);
 
+                        // Pass the message to ContactsList fragment if it is visible
+                        Intent intent = new Intent("com.example.levelup.NEW_MESSAGE");
+                        intent.putExtra("username", message.getUsername());
+                        intent.putExtra("content", message.getContent());
+                        intent.putExtra("timestamp", message.getTimestamp());
+                        intent.putExtra("from", message.getFrom());
+                        sendBroadcast(intent);
+
                         // Set notificationsent to true
                         dataSnapshot.getRef().child("notificationSent").setValue(true);
                     } else {
