@@ -90,12 +90,14 @@ public class MessageListenerService extends Service {
                         sendNotification(message);
 
                         // Pass the message to ContactsList fragment if it is visible
-                        Intent intent = new Intent("com.example.levelup.NEW_MESSAGE");
-                        intent.putExtra("username", message.getUsername());
-                        intent.putExtra("content", message.getContent());
-                        intent.putExtra("timestamp", message.getTimestamp());
-                        intent.putExtra("from", message.getFrom());
-                        sendBroadcast(intent);
+                        Intent broadcastIntent = new Intent("com.example.levelup.NEW_MESSAGE");
+                        broadcastIntent.setPackage(getPackageName());  // Ensure it is only sent to your app
+                        broadcastIntent.putExtra("username", message.getUsername());
+                        broadcastIntent.putExtra("content", message.getContent());
+                        broadcastIntent.putExtra("timestamp", message.getTimestamp());
+                        broadcastIntent.putExtra("from", message.getFrom());
+                        Log.d("MessageListenerService", "Broadcasting message: " + message.getContent());
+                        sendBroadcast(broadcastIntent);
 
                         // Set notificationsent to true
                         dataSnapshot.getRef().child("notificationSent").setValue(true);
@@ -182,8 +184,12 @@ public class MessageListenerService extends Service {
             channel.setDescription(description);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-            Log.d("MessageListenerService", "Notification channel created");
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+                Log.d("MessageListenerService", "Notification channel created");
+            } else {
+                Log.e("MessageListenerService", "NotificationManager is null, cannot create notification channel");
+            }
         }
     }
 }

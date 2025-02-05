@@ -60,7 +60,7 @@ public class ContactsList extends Fragment {
         databaseReference = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
         mAuth = FirebaseAuth.getInstance(); // Ensure mAuth is initialized here
 
-        // Initialize the BroadcastReceiver
+// Initialize the BroadcastReceiver
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -68,6 +68,7 @@ public class ContactsList extends Fragment {
                     String fromUid = intent.getStringExtra("from");
                     String content = intent.getStringExtra("content");
                     long timestamp = intent.getLongExtra("timestamp", 0);
+                    Log.d("ContactsList", "Broadcast received: " + content);
                     handleNewMessage(fromUid, content, timestamp);
                 }
             }
@@ -162,7 +163,12 @@ public class ContactsList extends Fragment {
     public void onPause() {
         super.onPause();
         Log.d("ContactsList", "onPause called");
-        getContext().unregisterReceiver(messageReceiver);
+        Context context = getContext();
+        if (context != null) {
+            context.unregisterReceiver(messageReceiver);
+        } else {
+            Log.e("ContactsList", "Context is null, cannot unregister receiver");
+        }
     }
 
     @Override
@@ -171,8 +177,13 @@ public class ContactsList extends Fragment {
         Log.d("ContactsList", "onResume called");
         fetchFavoriteList();
         // Register the BroadcastReceiver
-        IntentFilter filter = new IntentFilter("com.example.levelup.NEW_MESSAGE");
-        getContext().registerReceiver(messageReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        Context context = getContext();
+        if (context != null) {
+            IntentFilter filter = new IntentFilter("com.example.levelup.NEW_MESSAGE");
+            context.registerReceiver(messageReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            Log.e("ContactsList", "Context is null, cannot register receiver");
+        }
     }
 
     private void fetchFavoriteList() {

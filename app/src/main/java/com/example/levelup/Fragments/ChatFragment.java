@@ -86,10 +86,10 @@ public class ChatFragment extends Fragment {
         favPersonButton = view.findViewById(R.id.favpersonbutton);
         blockButton = view.findViewById(R.id.blockbutton);
 
-        if (recieverNickname != null) {
+     /*   if (recieverNickname != null) {
             msgrecievername.setText(recieverNickname);
             findUserUidByNickname(recieverNickname);
-        }
+        } */
 
         messageList = new ArrayList<>();
         messageAdapter = new MessageAdapter(messageList, currentNickname);
@@ -144,21 +144,30 @@ public class ChatFragment extends Fragment {
             String newRecieverNickname = getArguments().getString("recieverNickname");
             String newCurrentNickname = getArguments().getString("currentNickname");
 
-            if (newRecieverNickname != null && !newRecieverNickname.equals(recieverNickname)) {
+            if (newCurrentNickname != null && !newCurrentNickname.equals(currentNickname)) { // incase i change account
+                currentNickname = newCurrentNickname;
+            }
+
+            if (newRecieverNickname != null && !newRecieverNickname.equals(recieverNickname)) {}
+
                 recieverNickname = newRecieverNickname;
                 msgrecievername.setText(recieverNickname);
                 findUserUidByNickname(recieverNickname);
-            } else if (receiverUid != null) {
-                setupChatPath(receiverUid);
-            }
 
-            if (newCurrentNickname != null && !newCurrentNickname.equals(currentNickname)) {
-                currentNickname = newCurrentNickname;
-            }
+            //else if (receiverUid != null) {
+              //  setupChatPath(receiverUid);
+           // }
+
+
         }
 
         // Check if the person is in the favorites list and update the button image
         checkIfFavorite();
+
+        // Restart the MessageListenerService with the updated receiverUid
+        Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
+        serviceIntent.putExtra("receiverUid", receiverUid);
+        getContext().startService(serviceIntent);
     }
 
 
@@ -213,13 +222,18 @@ public class ChatFragment extends Fragment {
     }
 
     private void loadChatHistory() {
-        databaseReference.child("chats").child(chatPath).addListenerForSingleValueEvent(new ValueEventListener() {
+        Query query = databaseReference.child("chats").child(chatPath).limitToLast(200);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 messageList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Message message = snapshot.getValue(Message.class);
-                    messageList.add(message);
+                    if (message != null) {
+                        message.setNotificationSent(true); // Mark as notification sent
+                        snapshot.getRef().child("notificationSent").setValue(true); // Update in database
+                        messageList.add(message);
+                    }
                 }
                 messageAdapter.notifyDataSetChanged();
                 messagesRecyclerView.scrollToPosition(messageList.size() - 1);
@@ -238,13 +252,12 @@ public class ChatFragment extends Fragment {
         chatListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-               // Log.d("ChatFragment", "onChildAdded called"); // creates spam at LogCat
                 Message message = dataSnapshot.getValue(Message.class);
-                if (message != null && !message.getUsername().equals(currentNickname)) {
+                if (message != null && !message.getUsername().equals(currentNickname) && !message.isNotificationSent()) {
                     messageList.add(message);
                     messageAdapter.notifyItemInserted(messageList.size() - 1);
                     messagesRecyclerView.scrollToPosition(messageList.size() - 1);
-                    // We can also set notificationSent to true but right now it also works without it.
+                    dataSnapshot.getRef().child("notificationSent").setValue(true); // Mark as notification sent
                 }
             }
 
