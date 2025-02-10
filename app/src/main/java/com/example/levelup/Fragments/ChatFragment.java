@@ -217,7 +217,6 @@ public class ChatFragment extends Fragment {
             }
             Log.d("ChatPath", "Chat path: " + chatPath);
             loadChatHistory();
-            addChatListener();
         }
     }
 
@@ -237,7 +236,10 @@ public class ChatFragment extends Fragment {
                 }
                 messageAdapter.notifyDataSetChanged();
                 messagesRecyclerView.scrollToPosition(messageList.size() - 1);
+                addChatListener();
             }
+
+
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
