@@ -38,6 +38,9 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
+    // Game API
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+
     // Add the dependencies for Firebase products you want to use
     implementation("com.google.firebase:firebase-analytics")
 

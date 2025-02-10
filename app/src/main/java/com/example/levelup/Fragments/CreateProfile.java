@@ -1,12 +1,16 @@
 package com.example.levelup.Fragments;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -23,8 +27,22 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.example.levelup.models.UserProfile;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class CreateProfile extends Fragment {
 
@@ -75,24 +93,28 @@ public class CreateProfile extends Fragment {
             }
         });
 
-        String[] games = getResources().getStringArray(R.array.games_array);
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, games);
-        gamesAutoComplete.setAdapter(adapter);
-
-        gamesAutoComplete.setOnItemClickListener((parent, view1, position, id) -> {
-            String selectedGame = (String) parent.getItemAtPosition(position);
-            if (!selectedGames.contains(selectedGame)) {
-                selectedGames.add(selectedGame);
-                updateSelectedGamesTextView();
-            }
-            gamesAutoComplete.setText("");
-        });
-
         deleteButton.setOnClickListener(v -> {
             if (!selectedGames.isEmpty()) {
                 selectedGames.remove(selectedGames.size() - 1);
                 updateSelectedGamesTextView();
+            }
+        });
+
+        // 1. Set up the search field to trigger the API call when the user presses Enter
+        gamesAutoComplete.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                        actionId == EditorInfo.IME_ACTION_DONE ||
+                        (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+
+                    String query = gamesAutoComplete.getText().toString().trim();
+                    if (!query.isEmpty()) {
+                        searchGames(query);
+                    }
+                    return true;
+                }
+                return false;
             }
         });
 
@@ -146,6 +168,107 @@ public class CreateProfile extends Fragment {
         SpannableString spannableString = new SpannableString(gamesText.toString());
         spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, gamesText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         gamesSelectedTextView.setText(spannableString);
+    }
+
+    // 2. Method to perform the RAWG API search using OkHttp
+    private void searchGames(String query) {
+        try {
+            String encodedQuery = URLEncoder.encode(query, "UTF-8");
+            // Construct the RAWG API URL: page_size limits the response to 5 games.
+            String url = "https://api.rawg.io/api/games?key=ff52dd671c9045c0a820c272cc243062"
+                    + "&search=" + encodedQuery
+                    + "&page_size=5";
+
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(url).build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    // Fall back to local games data if API call fails
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), "API error, loading local games", Toast.LENGTH_SHORT).show();
+                        loadLocalGames(query);
+                    });
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()) {
+                        onFailure(call, new IOException("Unexpected response " + response));
+                        return;
+                    }
+                    String responseData = response.body().string();
+                    List<String> gameResults = parseGameResults(responseData);
+                    getActivity().runOnUiThread(() -> showGameResults(gameResults));
+                }
+            });
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 3. Parse the JSON response from RAWG to extract game names
+    private List<String> parseGameResults(String json) {
+        List<String> results = new ArrayList<>();
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            JSONArray jsonArray = jsonObject.getJSONArray("results");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject gameObj = jsonArray.getJSONObject(i);
+                String gameName = gameObj.getString("name");
+                results.add(gameName);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
+
+    // 4. Fallback: Filter the local games resource in case of API failure
+    private void loadLocalGames(String query) {
+        String[] localGames = getResources().getStringArray(R.array.popular_multiplayer_games);
+        List<String> filteredGames = new ArrayList<>();
+        for (String game : localGames) {
+            if (game.toLowerCase().contains(query.toLowerCase())) {
+                filteredGames.add(game);
+            }
+        }
+        // Limit results to 5 entries if necessary
+        if (filteredGames.size() > 5) {
+            filteredGames = filteredGames.subList(0, 5);
+        }
+        showGameResults(filteredGames);
+    }
+
+    // 5. Display the list of games in a dialog for the user to select one
+// Modify the showGameResults function
+    private void showGameResults(List<String> gameResults) {
+        if (gameResults.isEmpty()) {
+            Toast.makeText(getContext(), "No games found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Select a Game")
+                .setItems(gameResults.toArray(new String[0]), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String selectedGame = gameResults.get(which);
+                        if (!selectedGames.contains(selectedGame)) {
+                            selectedGames.add(selectedGame);
+                            updateSelectedGamesTextView();
+                        }
+                        gamesAutoComplete.setText(""); // Clear only when a game is selected
+                    }
+                })
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        // Do nothing, so the text remains for correction
+                    }
+                })
+                .show();
     }
 
 }
