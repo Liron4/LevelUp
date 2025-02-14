@@ -47,7 +47,7 @@ public class ChatFragment extends Fragment {
     private MessageAdapter messageAdapter;
     private List<Message> messageList;
     private EditText messageEditText;
-    private Button sendButton;
+    private ImageButton sendButton;
     private ImageButton favPersonButton;
     private ImageButton blockButton;
     private TextView msgrecievername;
@@ -66,10 +66,9 @@ public class ChatFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            recieverNickname = getArguments().getString("recieverNickname");
-            currentNickname = getArguments().getString("currentNickname");
-        }
+            recieverNickname = "";
+        currentNickname = getArguments() != null ? getArguments().getString("currentNickname", "") : "";
+
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
     }
@@ -86,17 +85,10 @@ public class ChatFragment extends Fragment {
         favPersonButton = view.findViewById(R.id.favpersonbutton);
         blockButton = view.findViewById(R.id.blockbutton);
 
-     /*   if (recieverNickname != null) {
-            msgrecievername.setText(recieverNickname);
-            findUserUidByNickname(recieverNickname);
-        } */
-
         messageList = new ArrayList<>();
         messageAdapter = new MessageAdapter(messageList, currentNickname);
         messagesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         messagesRecyclerView.setAdapter(messageAdapter);
-
-        checkIfFavorite();
 
         sendButton.setOnClickListener(v -> sendMessage());
 
@@ -111,8 +103,7 @@ public class ChatFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        Log.d("ChatFragment", "onPause called - delegating to onDestroyView()");
-        Log.d("ChatFragment", "Ensuring cleanup");
+        Log.d("ChatFragment", "onPause called - Cleaning area");
 
         // ניקוי האזנה להודעות צ'אט
         if (chatListener != null) {
@@ -121,10 +112,6 @@ public class ChatFragment extends Fragment {
             chatListener = null;
         }
 
-        // ניקוי רשימת ההודעות
-        Log.d("ChatFragment", "Clearing message list");
-        messageList.clear();
-        messageAdapter.notifyDataSetChanged();
 
         // עדכון השירות שלא להאזין יותר
         Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
@@ -144,30 +131,20 @@ public class ChatFragment extends Fragment {
             String newRecieverNickname = getArguments().getString("recieverNickname");
             String newCurrentNickname = getArguments().getString("currentNickname");
 
-            if (newCurrentNickname != null && !newCurrentNickname.equals(currentNickname)) { // incase i change account
+            if (newCurrentNickname != null && !newCurrentNickname.equals(currentNickname)) { // incase of an account swap
                 currentNickname = newCurrentNickname;
             }
 
-            if (newRecieverNickname != null && !newRecieverNickname.equals(recieverNickname)) {}
-
+            if (!newRecieverNickname.equals(recieverNickname)) {
                 recieverNickname = newRecieverNickname;
                 msgrecievername.setText(recieverNickname);
-                findUserUidByNickname(recieverNickname);
-
-            //else if (receiverUid != null) {
-              //  setupChatPath(receiverUid);
-           // }
-
-
+                findUserUidByNickname(recieverNickname); // updates chat fragment completely
+            } else { // we came back to the same chat
+                Log.d("ChatFragment", "Optimization mode");
+                addChatListener(); // Add the chat listener to listen again
+                startMessageListenerService(); // Start the service with the old receiverUid
+            }
         }
-
-        // Check if the person is in the favorites list and update the button image
-        checkIfFavorite();
-
-        // Restart the MessageListenerService with the updated receiverUid
-        Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
-        serviceIntent.putExtra("receiverUid", receiverUid);
-        getContext().startService(serviceIntent);
     }
 
 
@@ -181,6 +158,7 @@ public class ChatFragment extends Fragment {
                         if (dataSnapshot.exists()) {
                             for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                                 receiverUid = userSnapshot.getKey(); // Set global variable
+                                startMessageListenerService(); // Start the service with the updated receiverUid
                                 // Set up chat path
                                 setupChatPath(receiverUid);
 
@@ -198,12 +176,17 @@ public class ChatFragment extends Fragment {
                 });
     }
 
-    private void setupChatPath(String receiverUid) {
+    private void startMessageListenerService() {
+        if (receiverUid != null) {
+            Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
+            serviceIntent.putExtra("receiverUid", receiverUid);
+            getContext().startService(serviceIntent);
+        } else {
+            Log.e("ChatFragment", "receiverUid is null, cannot start MessageListenerService");
+        }
+    }
 
-        // Ignore notifications from current chat
-        Intent serviceIntent = new Intent(getContext(), MessageListenerService.class);
-        serviceIntent.putExtra("receiverUid", receiverUid);
-        getContext().startService(serviceIntent);
+    private void setupChatPath(String receiverUid) {
 
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -221,7 +204,7 @@ public class ChatFragment extends Fragment {
     }
 
     private void loadChatHistory() {
-        Query query = databaseReference.child("chats").child(chatPath).limitToLast(200);
+        Query query = databaseReference.child("chats").child(chatPath).limitToLast(25);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -237,6 +220,8 @@ public class ChatFragment extends Fragment {
                 messageAdapter.notifyDataSetChanged();
                 messagesRecyclerView.scrollToPosition(messageList.size() - 1);
                 addChatListener();
+                // Check if the person is in the favorites list and update the button image
+                checkIfFavorite();
             }
 
 

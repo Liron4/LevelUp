@@ -17,10 +17,8 @@
         android:theme="@style/Theme.LevelUp"
         tools:targetApi="31">
         <activity
-            android:name=".NotificationHandlerActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
+            android:launchMode="singleTop"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

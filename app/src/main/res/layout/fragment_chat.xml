@@ -72,10 +72,13 @@
             android:layout_weight="1"
             android:hint="Type a message" />
 
-        <Button
+
+        <ImageButton
             android:id="@+id/sendButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Send" />
+            android:layout_width="66dp"
+            android:layout_height="60dp"
+            android:backgroundTint="#00FFFFFF"
+            android:scaleType="fitXY"
+            android:src="@drawable/sendbtnimage" />
     </LinearLayout>
 </LinearLayout>

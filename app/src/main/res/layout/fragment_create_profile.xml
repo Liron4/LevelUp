@@ -97,33 +97,31 @@
 
     <TextView
         android:id="@+id/selectedGamesTextView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="391dp"
+        android:layout_height="34dp"
         android:layout_marginTop="8dp"
         android:text="Selected Games:"
+        android:textColor="@color/textColor"
         android:textSize="9.5pt"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/gamesAutoComplete"
-        android:textColor="@color/textColor"
-        />
+        app:layout_constraintTop_toBottomOf="@id/gamesAutoComplete" />
 
     <TextView
         android:id="@+id/GamesSelected"
-        android:layout_width="406dp"
-        android:layout_height="101dp"
+        android:layout_width="393dp"
+        android:layout_height="97dp"
         android:layout_marginTop="16dp"
         android:text=""
+        android:textColor="@color/textColor"
         android:textSize="8pt"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.461"
+        app:layout_constraintHorizontal_bias="0.888"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/selectedGamesTextView"
-        android:textColor="@color/textColor"
-        />
+        app:layout_constraintTop_toBottomOf="@id/selectedGamesTextView" />
 
     <ImageButton
         android:id="@+id/DeleteButton"
@@ -140,15 +138,15 @@
 
     <Button
         android:id="@+id/registerButton"
-        android:layout_width="373dp"
-        android:layout_height="49dp"
+        android:layout_width="382dp"
+        android:layout_height="50dp"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="16dp"
         android:backgroundTint="@android:color/holo_red_light"
         android:text="Register"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.421"
+        app:layout_constraintHorizontal_bias="0.482"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/DeleteButton"
         app:layout_constraintVertical_bias="0.923" />

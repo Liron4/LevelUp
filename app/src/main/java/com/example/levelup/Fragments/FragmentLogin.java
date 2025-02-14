@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -53,6 +55,14 @@ public class FragmentLogin extends Fragment {
         //    mParam2 = getArguments().getString(ARG_PARAM2);
         }
         mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            // User is already logged in, go to main screen
+            Log.d("LoginFragment", "Moving on to SearchEngine Fragment, since User is already authenticated: " + currentUser.getUid());
+            NavController navController = NavHostFragment.findNavController(this);
+            navController.navigate(R.id.action_fragmentLogin_to_searchEngine);
+        }
     }
 
     @Override

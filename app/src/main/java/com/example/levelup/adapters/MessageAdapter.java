@@ -74,7 +74,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             messageContentTextView = itemView.findViewById(R.id.messageContentTextView);
             usernamemsg = itemView.findViewById(R.id.usernamemsg);
             messageTimeTextView2 = itemView.findViewById(R.id.messageTimeTextView2);
-            msgarea = itemView.findViewById(R.id.msgarea);
+            msgarea = itemView.findViewById(R.id.msgarea1);
         }
 
         public void bind(Message message) {
@@ -95,7 +95,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             messageContentTextView = itemView.findViewById(R.id.messageContentTextView);
             usernamemsg = itemView.findViewById(R.id.usernamemsg);
             messageTimeTextView2 = itemView.findViewById(R.id.messageTimeTextView2);
-            msgarea = itemView.findViewById(R.id.msgarea);
+            msgarea = itemView.findViewById(R.id.msgarea2);
         }
 
         public void bind(Message message) {

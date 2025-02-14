@@ -14,14 +14,12 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import com.example.levelup.MainActivity;
-import com.example.levelup.NotificationHandlerActivity;
 import com.example.levelup.R;
 import com.example.levelup.models.Message;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
 
 public class MessageListenerService extends Service {
     private static final String CHANNEL_ID = "MessageNotificationChannel";
@@ -143,7 +141,7 @@ public class MessageListenerService extends Service {
     private void sendNotification(Message message) {
         String groupKey = "com.example.levelup.NOTIFICATIONS_" + message.getFrom();
 
-        Intent intent = new Intent(this, NotificationHandlerActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("senderUsername", message.getUsername());
         intent.putExtra("senderUid", message.getFrom());
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

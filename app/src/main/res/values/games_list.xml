@@ -1,127 +1,188 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="popular_multiplayer_games">
-        <!-- Top 20 Most Popular -->
-        <item>Fortnite</item>
-        <item>Minecraft</item>
-        <item>Roblox</item>
-        <item>Call of Duty: Warzone</item>
-        <item>Apex Legends</item>
-        <item>League of Legends</item>
+        <!-- Top 50 Most Played (Cross-Platform & PC/Console Dominant) -->
         <item>Counter-Strike 2</item>
+        <item>PUBG: Battlegrounds</item>
+        <item>Dota 2</item>
+        <item>Apex Legends</item>
+        <item>Fortnite</item>
+        <item>League of Legends</item>
+        <item>Valorant</item>
         <item>Genshin Impact</item>
         <item>Rocket League</item>
-        <item>Helldivers 2</item>
-        <item>PUBG: Battlegrounds</item>
-        <item>Valorant</item>
+        <item>Call of Duty: Warzone 2.0</item>
+        <item>Minecraft</item>
+        <item>Roblox</item>
+        <item>Grand Theft Auto V</item>
+        <item>Rust</item>
+        <item>Lost Ark</item>
         <item>Overwatch 2</item>
-        <item>GTA Online</item>
         <item>Destiny 2</item>
-        <item>World of Warcraft</item>
-        <item>Diablo IV</item>
-        <item>Path of Exile</item>
-        <item>Rainbow Six Siege</item>
-        <item>Dota 2</item>
-
-        <!-- 2024 Breakout Hits -->
-        <item>Palworld</item>
         <item>Marvel Rivals</item>
-        <item>Warhammer 40K: Space Marine 2</item>
+        <item>NARAKA: BLADEPOINT</item>
+        <item>Helldivers 2</item>
+        <item>Palworld</item>
+        <item>Banana</item>
+        <item>Kingdom Come: Deliverance II</item>
+        <item>Monster Hunter Wilds</item>
         <item>The Finals</item>
         <item>Dragon Ball: Sparking Zero</item>
         <item>Elden Ring: Shadow of the Erdtree</item>
-        <item>Honkai: Star Rail</item>
-        <item>Mobile Legends: Bang Bang</item>
-        <item>Clash of Clans</item>
-        <item>Baldurs Gate 3</item>
-
-        <!-- Co-op Classics -->
-        <item>Sea of Thieves</item>
-        <item>Monster Hunter: World</item>
-        <item>It Takes Two</item>
-        <item>Valheim</item>
-        <item>Deep Rock Galactic</item>
-        <item>Dont Starve Together</item>
-        <item>Phasmophobia</item>
-        <item>Lethal Company</item>
-        <item>Core Keeper</item>
-        <item>V Rising</item>
-
-        <!-- Battle Royales -->
+        <item>Path of Exile 2</item>
+        <item>Tekken 8</item>
+        <item>Suicide Squad: Kill the Justice League</item>
         <item>Fall Guys</item>
-        <item>H1Z1</item>
+        <item>Hunt: Showdown</item>
         <item>Spellbreak</item>
-        <item>Realm Royale</item>
-        <item>Hyper Scape</item>
-
-        <!-- MOBAs -->
         <item>Smite</item>
         <item>Heroes of the Storm</item>
-        <item>Vainglory</item>
-        <item>Arena of Valor</item>
         <item>Pokémon Unite</item>
-
-        <!-- MMORPGs -->
+        <item>World of Warcraft</item>
         <item>Final Fantasy XIV</item>
         <item>Guild Wars 2</item>
         <item>Black Desert Online</item>
-        <item>Elder Scrolls Online</item>
-        <item>New World</item>
-
-        <!-- Shooters -->
-        <item>Battlefield 2042</item>
-        <item>Halo Infinite</item>
-        <item>Team Fortress 2</item>
-        <item>Splitgate</item>
-        <item>Insurgency: Sandstorm</item>
-
-        <!-- Survival Games -->
-        <item>Rust</item>
         <item>ARK: Survival Evolved</item>
-        <item>Conan Exiles</item>
-        <item>DayZ</item>
+        <item>Valheim</item>
         <item>7 Days to Die</item>
+        <item>V Rising</item>
+        <item>Rainbow Six Siege</item>
+        <item>Escape from Tarkov</item>
+        <item>Insurgency: Sandstorm</item>
+        <item>Baldurs Gate 3</item>
+        <item>It Takes Two</item>
+        <item>Deep Rock Galactic</item>
 
-        <!-- Indie Multiplayer -->
-        <item>Among Us</item>
-        <item>Stardew Valley</item>
-        <item>Terraria</item>
+        <!-- Mobile Giants (Marked with "Mobile") -->
+        <item>PUBG Mobile</item>
+        <item>Call of Duty: Mobile</item>
+        <item>Garena Free Fire</item>
+        <item>Mobile Legends: Bang Bang</item>
+        <item>Clash of Clans</item>
+        <item>Clash Royale</item>
+        <item>Brawl Stars</item>
+        <item>Honkai: Star Rail</item>
+        <item>Genshin Impact Mobile</item>
+        <item>Roblox Mobile</item>
+        <item>Among Us Mobile</item>
+        <item>Pokémon GO</item>
+        <item>League of Legends: Wild Rift</item>
+        <item>Apex Legends Mobile</item>
+        <item>Diablo Immortal</item>
+        <item>Asphalt 9: Legends Mobile</item>
+        <item>Marvel Snap Mobile</item>
+        <item>AFK Arena</item>
+        <item>Raid: Shadow Legends</item>
+        <item>State of Survival</item>
+        <item>Summoners War</item>
+        <item>Evony: The Kings Return</item>
+        <item>Rise of Kingdoms</item>
+        <item>Lords Mobile</item>
+        <item>Gardenscapes</item>
+        <item>Homescapes</item>
+        <item>Fishdom</item>
+        <item>Subway Surfers</item>
+        <item>8 Ball Pool</item>
+        <item>Ludo King</item>
+        <item>Among Us Mobile</item>
+        <item>Minecraft Mobile</item>
+        <item>Stardew Valley Mobile</item>
+        <item>Genshin Impact Mobile</item>
+        <item>Honkai Impact 3rd</item>
+        <item>Azur Lane</item>
+        <item>Arknights</item>
+        <item>Fate/Grand Order</item>
+        <item>Fire Emblem Heroes</item>
+        <item>Epic Seven</item>
+        <item>Black Desert Mobile</item>
+        <item>Lineage 2: Revolution</item>
+        <item>Elder Scrolls: Blades</item>
+        <item>Torchlight: Infinite</item>
+        <item>Dislyte</item>
+        <item>Ni no Kuni: Cross Worlds</item>
+        <item>Goddess of Victory: Nikke</item>
+        <item>Reverse: 1999</item>
+        <item>Honkai: Star Rail Mobile</item>
+        <item>Wuthering Waves Mobile</item>
+        <item>Project Mugen Mobile</item>
+        <item>Zenless Zone Zero Mobile</item>
+
+        <!-- Xbox & PlayStation Exclusives (No Platform Tag) -->
+        <item>Halo Infinite</item>
+        <item>Forza Horizon 5</item>
+        <item>Gears 5</item>
+        <item>Sea of Thieves</item>
+        <item>Starfield</item>
+        <item>God of War: Ragnarok</item>
+        <item>The Last of Us Part II</item>
+        <item>Spider-Man 2</item>
+        <item>Gran Turismo 7</item>
+        <item>Horizon Forbidden West</item>
+        <item>Final Fantasy XVI</item>
+        <item>Demons Souls Remake</item>
+        <item>Bloodborne</item>
+        <item>Ghost of Tsushima</item>
+        <item>Ratchet and Clank: Rift Apart</item>
+        <item>Returnal</item>
+        <item>Death Stranding</item>
+        <item>Days Gone</item>
+        <item>Uncharted 4: A Thiefs End</item>
+        <item>Infamous Second Son</item>
+
+        <!-- PC Dominant Titles -->
+        <item>Escape from Tarkov</item>
+        <item>Warframe</item>
+        <item>Path of Exile</item>
+        <item>Team Fortress 2</item>
+        <item>Left 4 Dead 2</item>
+        <item>Phasmophobia</item>
+        <item>Valheim</item>
         <item>Risk of Rain 2</item>
         <item>Gunfire Reborn</item>
+        <item>Core Keeper</item>
+        <item>Project Zomboid</item>
+        <item>Barotrauma</item>
+        <item>Dont Starve Together</item>
+        <item>Starbound</item>
+        <item>Terraria</item>
+        <item>Factorio</item>
+        <item>Satisfactory</item>
+        <item>Dyson Sphere Program</item>
+        <item>RimWorld</item>
+        <item>Kenshi</item>
 
-        <!-- Fighting Games -->
-        <item>Street Fighter 6</item>
-        <item>Tekken 8</item>
-        <item>Mortal Kombat 1</item>
-        <item>Super Smash Bros. Ultimate</item>
-        <item>Dragon Ball FighterZ</item>
-
-        <!-- Sports & Racing -->
-        <item>FIFA 23</item>
-        <item>NBA 2K24</item>
-        <item>Forza Horizon 5</item>
-        <item>Gran Turismo 7</item>
-        <item>Rocket League Sideswipe</item>
-
-        <!-- Retro Multiplayer -->
+        <!-- Retro & Legacy Multiplayer -->
         <item>Quake III Arena</item>
         <item>Unreal Tournament 2004</item>
         <item>StarCraft: Brood War</item>
         <item>Warcraft III: Frozen Throne</item>
         <item>Diablo II: Resurrected</item>
+        <item>Age of Empires II: Definitive Edition</item>
+        <item>Command and Conquer: Red Alert 2</item>
+        <item>Battlefield 1942</item>
+        <item>Half-Life: Deathmatch</item>
+        <item>Team Fortress Classic</item>
+        <item>Counter-Strike 1.6</item>
+        <item>Day of Defeat</item>
+        <item>Jedi Knight II: Jedi Outcast</item>
+        <item>Jedi Knight: Jedi Academy</item>
+        <item>Morrowind Multiplayer</item>
+        <item>Neverwinter Nights</item>
+        <item>Baldurs Gate: Dark Alliance</item>
+        <item>Chrono Trigger Multiplayer Mod</item>
+        <item>GoldenEye 007 (Xbox Remaster)</item>
+        <item>Perfect Dark (Xbox Remaster)</item>
 
-        <!-- Mobile Exclusives -->
-        <item>Clash Royale</item>
-        <item>Brawl Stars</item>
-        <item>Garena Free Fire</item>
-        <item>Call of Duty: Mobile</item>
-        <item>Asphalt 9: Legends</item>
-
-        <!-- Upcoming Titles -->
-        <item>Star Wars: Hunters</item>
-        <item>Project L</item>
-        <item>Suicide Squad: Kill the Justice League</item>
-        <item>Skull and Bones</item>
-        <item>Ark 2</item>
+        <!-- Upcoming Titles (2024-2025) -->
+        <item>Light No Fire</item>
+        <item>Dune: Awakening</item>
+        <item>Avowed</item>
+        <item>Fable</item>
+        <item>Star Wars Outlaws</item>
+        <item>Assassins Creed Red</item>
+        <item>Dragon Age: Dreadwolf</item>
+        <item>Mass Effect 4</item>
+        <item>Elder Scrolls VI</item>
+        <item>GTA VI</item>
     </string-array>
 </resources>

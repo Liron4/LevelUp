@@ -172,40 +172,64 @@ public class CreateProfile extends Fragment {
 
     // 2. Method to perform the RAWG API search using OkHttp
     private void searchGames(String query) {
-        try {
-            String encodedQuery = URLEncoder.encode(query, "UTF-8");
-            // Construct the RAWG API URL: page_size limits the response to 5 games.
-            String url = "https://api.rawg.io/api/games?key=ff52dd671c9045c0a820c272cc243062"
-                    + "&search=" + encodedQuery
-                    + "&page_size=5";
+        List<String> localResults = loadLocalGames(query);
+        if (!localResults.isEmpty()) {
+            showGameResults(localResults);
+        } else {
+            try {
+                String encodedQuery = URLEncoder.encode(query, "UTF-8");
+                String url = "https://api.rawg.io/api/games?key=ff52dd671c9045c0a820c272cc243062"
+                        + "&search=" + encodedQuery
+                        + "&page_size=5";
 
-            OkHttpClient client = new OkHttpClient();
-            Request request = new Request.Builder().url(url).build();
+                OkHttpClient client = new OkHttpClient();
+                Request request = new Request.Builder().url(url).build();
 
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    // Fall back to local games data if API call fails
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getContext(), "API error, loading local games", Toast.LENGTH_SHORT).show();
-                        loadLocalGames(query);
-                    });
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (!response.isSuccessful()) {
-                        onFailure(call, new IOException("Unexpected response " + response));
-                        return;
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "API error", Toast.LENGTH_SHORT).show();
+                        });
                     }
-                    String responseData = response.body().string();
-                    List<String> gameResults = parseGameResults(responseData);
-                    getActivity().runOnUiThread(() -> showGameResults(gameResults));
-                }
-            });
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if (!response.isSuccessful()) {
+                            onFailure(call, new IOException("Unexpected response " + response));
+                            return;
+                        }
+                        String responseData = response.body().string();
+                        List<String> gameResults = parseGameResults(responseData);
+                        getActivity().runOnUiThread(() -> {
+                            if (gameResults.isEmpty()) {
+                                Toast.makeText(getContext(), "No games found", Toast.LENGTH_SHORT).show();
+                            } else {
+                                showGameResults(gameResults);
+                            }
+                        });
+                    }
+                });
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    // 4. Fallback: Filter the local games resource
+    private List<String> loadLocalGames(String query) {
+        String[] localGames = getResources().getStringArray(R.array.popular_multiplayer_games);
+        List<String> filteredGames = new ArrayList<>();
+        for (String game : localGames) {
+            if (game.toLowerCase().contains(query.toLowerCase())) {
+                filteredGames.add(game);
+            }
+        }
+        // Limit results to 5 entries if necessary
+        if (filteredGames.size() > 5) {
+            filteredGames = filteredGames.subList(0, 5);
+        }
+        return filteredGames;
     }
 
     // 3. Parse the JSON response from RAWG to extract game names
@@ -225,21 +249,7 @@ public class CreateProfile extends Fragment {
         return results;
     }
 
-    // 4. Fallback: Filter the local games resource in case of API failure
-    private void loadLocalGames(String query) {
-        String[] localGames = getResources().getStringArray(R.array.popular_multiplayer_games);
-        List<String> filteredGames = new ArrayList<>();
-        for (String game : localGames) {
-            if (game.toLowerCase().contains(query.toLowerCase())) {
-                filteredGames.add(game);
-            }
-        }
-        // Limit results to 5 entries if necessary
-        if (filteredGames.size() > 5) {
-            filteredGames = filteredGames.subList(0, 5);
-        }
-        showGameResults(filteredGames);
-    }
+
 
     // 5. Display the list of games in a dialog for the user to select one
 // Modify the showGameResults function

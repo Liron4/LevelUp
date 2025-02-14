@@ -12,10 +12,21 @@
         tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_login_to_createProfileFragment"
-            app:destination="@id/fragmentCreateProfile" />
+            app:destination="@id/fragmentCreateProfile"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            />
         <action
             android:id="@+id/action_fragmentLogin_to_searchEngine"
-            app:destination="@id/searchEngine" />
+            app:destination="@id/searchEngine"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left"
+
+            />
     </fragment>
 
     <fragment
@@ -32,10 +43,20 @@
             android:id="@+id/action_searchEngine_to_chatFragment"
             app:destination="@id/chatFragment"
             app:popUpTo="@id/searchEngine"
-            app:popUpToInclusive="false" />
+            app:popUpToInclusive="false"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            />
         <action
             android:id="@+id/action_searchEngine_to_contactsList"
-            app:destination="@id/contactsList" />
+            app:destination="@id/contactsList"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left"
+            />
     </fragment>
     <fragment
         android:id="@+id/chatFragment"
@@ -45,10 +66,19 @@
         <action
             android:id="@+id/action_chatFragment_to_searchEngine"
             app:destination="@id/searchEngine"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
             />
         <action
             android:id="@+id/action_chatFragment_to_contactsList"
-            app:destination="@id/contactsList" />
+            app:destination="@id/contactsList"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            />
     </fragment>
     <fragment
         android:id="@+id/contactsList"
@@ -59,6 +89,11 @@
             android:id="@+id/action_contactsList_to_chatFragment"
             app:destination="@id/chatFragment"
             app:popUpTo="@id/contactsList"
-            app:popUpToInclusive="false" />
+            app:popUpToInclusive="false"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            />
     </fragment>
 </navigation>
