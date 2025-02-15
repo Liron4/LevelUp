@@ -3,43 +3,50 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
-    android:background="@drawable/message_background"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="8dp"
+    android:gravity="end">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:background="@drawable/message_background"
+        android:padding="8dp"
+        android:layout_marginStart="50dp">
 
         <TextView
             android:id="@+id/messageContentTextView"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:padding="4dp"
             android:text="Message content"
             android:textColor="@android:color/black"
             android:textSize="16sp" />
 
-        <TextView
-            android:id="@+id/usernamemsg"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:padding="4dp"
-            android:text="Name"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="12sp" />
-    </LinearLayout>
+            android:orientation="horizontal"
+            android:gravity="end">
 
-    <TextView
-        android:id="@+id/messageTimeTextView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:padding="4dp"
-        android:text="12:00 PM"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="12sp" />
+            <TextView
+                android:id="@+id/usernamemsg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:text="Name"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/messageTimeTextView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:text="12:00 PM"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

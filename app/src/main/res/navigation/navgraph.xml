@@ -57,6 +57,9 @@
             app:popEnterAnim="@anim/slide_in_right"
             app:popExitAnim="@anim/slide_out_left"
             />
+        <action
+            android:id="@+id/action_searchEngine_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
     <fragment
         android:id="@+id/chatFragment"
@@ -96,4 +99,8 @@
             app:popExitAnim="@anim/slide_out_right"
             />
     </fragment>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.levelup.Fragments.SettingsFragment"
+        android:label="SettingsFragment" />
 </navigation>

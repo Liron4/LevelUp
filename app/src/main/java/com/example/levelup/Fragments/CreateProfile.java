@@ -182,27 +182,27 @@ public class CreateProfile extends Fragment {
                         + "&search=" + encodedQuery
                         + "&page_size=5";
 
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder().url(url).build();
+                OkHttpClient client = new OkHttpClient(); // ספרייה לעשות קריאות API
+                Request request = new Request.Builder().url(url).build(); // אובייקש בקשה מהספרייה
 
                 client.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         getActivity().runOnUiThread(() -> {
                             Toast.makeText(getContext(), "API error", Toast.LENGTH_SHORT).show();
-                        });
+                        }); // תקלה מסוג אין לי אינטרנט
                     }
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         if (!response.isSuccessful()) {
                             onFailure(call, new IOException("Unexpected response " + response));
-                            return;
+                            return; // יש לי אינטרנט, אבל הAPI לא בא לו לתת לי תשובות
                         }
                         String responseData = response.body().string();
                         List<String> gameResults = parseGameResults(responseData);
                         getActivity().runOnUiThread(() -> {
-                            if (gameResults.isEmpty()) {
+                            if (gameResults.isEmpty()) { // מה עם הכל עבד אבל קיבלתי רשימה ריקה?
                                 Toast.makeText(getContext(), "No games found", Toast.LENGTH_SHORT).show();
                             } else {
                                 showGameResults(gameResults);

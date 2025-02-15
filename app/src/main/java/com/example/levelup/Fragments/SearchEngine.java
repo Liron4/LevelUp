@@ -1,14 +1,17 @@
 package com.example.levelup.Fragments;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
+
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,11 +34,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
+
 
 public class SearchEngine extends Fragment {
 
@@ -47,8 +47,8 @@ public class SearchEngine extends Fragment {
     private EditText searchEngine;
     private Spinner filterSpinner;
     private TextView nicknameHolder;
-
     ImageView moveToContactsButton;
+    ImageView settingsButton;
 
     public SearchEngine() {
         // Required empty public constructor
@@ -101,6 +101,12 @@ public class SearchEngine extends Fragment {
             Navigation.findNavController(view).navigate(R.id.action_searchEngine_to_contactsList);
         });
 
+        settingsButton = view.findViewById(R.id.settingsButton);
+        settingsButton.setOnClickListener(v -> {
+            Navigation.findNavController(view).navigate(R.id.action_searchEngine_to_settingsFragment);
+        });
+
+
 
         searchEngine.addTextChangedListener(new TextWatcher() {
             @Override
@@ -139,7 +145,6 @@ public class SearchEngine extends Fragment {
                         profiles.add(user);
                     }
                 }
-                Collections.shuffle(profiles);
                 filteredList.clear();
                 filteredList.addAll(profiles);
                 userListAdapter.notifyDataSetChanged();
@@ -226,6 +231,20 @@ public class SearchEngine extends Fragment {
                     String mynickname = dataSnapshot.getValue(String.class);
                     if (mynickname != null) {
                         nicknameHolder.setText("Welcome " + mynickname + "!");
+
+                        if ("Xiaomi".equalsIgnoreCase(android.os.Build.MANUFACTURER)) {
+                            // Set default font for Xiaomi devices
+                            nicknameHolder.setTypeface(null, Typeface.NORMAL);
+                        } else {
+                            // Set custom font for other devices
+                            Typeface customTypeface = ResourcesCompat.getFont(getContext(), R.font.gamer_font);
+                            nicknameHolder.setTypeface(customTypeface);
+                        }
+
+
+                        Log.d("SearchEngine", "Current user nickname fetched: " + mynickname);
+                    } else {
+                        Log.d("SearchEngine", "Current user nickname is null");
                     }
                 }
 

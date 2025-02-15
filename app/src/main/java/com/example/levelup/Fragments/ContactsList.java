@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.levelup.R;
@@ -46,6 +47,8 @@ public class ContactsList extends Fragment {
     private String CurrentUsernickname;
 
     private BroadcastReceiver messageReceiver;
+
+    private ImageView overlayImage;
 
 
 
@@ -128,6 +131,8 @@ public class ContactsList extends Fragment {
         fetchFavoriteList();
         Log.d("ContactsList", "onCreateView finished");
 
+        overlayImage = view.findViewById(R.id.overlayImage);
+
         return view;
     }
 
@@ -184,6 +189,16 @@ public class ContactsList extends Fragment {
         } else {
             Log.e("ContactsList", "Context is null, cannot register receiver");
         }
+
+        overlayImage.animate()
+                .alpha(0.0f)
+                .setDuration(2000) // Duration of the fade-out animation in milliseconds
+                .withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        overlayImage.setVisibility(View.GONE);
+                    }
+                });
     }
 
     private void fetchFavoriteList() {

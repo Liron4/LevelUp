@@ -31,26 +31,28 @@
                 app:layout_constraintVertical_bias="0.8" />
 
             <ImageView
-                android:id="@+id/editDetailsButton"
-                android:layout_width="38dp"
-                android:layout_height="33dp"
-                android:layout_marginStart="20dp"
-                android:src="@android:drawable/ic_menu_edit"
+                android:id="@+id/settingsButton"
+                android:layout_width="31dp"
+                android:layout_height="31dp"
+                android:layout_marginStart="16dp"
+                android:src="@drawable/settingsicon"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@id/moveToContactsButton"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.666" />
+                app:layout_constraintVertical_bias="0.764" />
 
             <TextView
                 android:id="@+id/nicknameHolder"
                 android:layout_width="177dp"
                 android:layout_height="25dp"
-                android:layout_marginStart="24dp"
+                android:layout_marginStart="16dp"
+                android:fontFamily="@font/gamer_font"
                 android:text="Welcome"
+                android:textSize="20sp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/editDetailsButton"
+                app:layout_constraintStart_toEndOf="@id/settingsButton"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.782" />
+                app:layout_constraintVertical_bias="0.913" />
 
             <ImageView
                 android:id="@+id/signOutButton"
@@ -59,7 +61,7 @@
                 android:src="@drawable/logout"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.558"
+                app:layout_constraintHorizontal_bias="0.659"
                 app:layout_constraintStart_toEndOf="@id/nicknameHolder"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.722" />

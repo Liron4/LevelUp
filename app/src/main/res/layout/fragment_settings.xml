@@ -1,0 +1,52 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Top LinearLayout containing the search bar and RecyclerView -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Search Bar -->
+        <EditText
+            android:id="@+id/searchBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:drawable/edit_text"
+            android:drawablePadding="8dp"
+            android:hint="Search games"
+            android:padding="8dp" />
+
+        <!-- RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/gamesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginBottom="16dp" />
+    </LinearLayout>
+
+    <!-- Bottom LinearLayout containing the bell button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:padding="16dp">
+
+        <!-- Notification Bell Button -->
+        <ImageButton
+            android:id="@+id/bellButton"
+            android:layout_width="72dp"
+            android:layout_height="73dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/bellgif"
+            android:scaleType="fitXY"
+            />
+    </LinearLayout>
+</LinearLayout>

@@ -40,9 +40,24 @@ public class MessageListenerService extends Service {
             Log.d("MessageListenerService", "UID retrieved: " + currentUid);
             createNotificationChannel();
             listenForMessages(currentUid, null);
+            startForegroundService();
         } else {
             Log.e("MessageListenerService", "UID not found. Service will not function properly.");
         }
+    }
+
+    private void startForegroundService() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Message Listener Service")
+                .setContentText("Listening for new messages")
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setSilent(true)
+                .setSmallIcon(R.drawable.bellicon); // Set the bell icon
+        startForeground(1, builder.build());
     }
 
     @Override

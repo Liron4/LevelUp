@@ -59,6 +59,8 @@ public class ChatFragment extends Fragment {
     private String receiverUid; // Global variable for receiver UID
     private ChildEventListener chatListener;
 
+    private ImageView overlayImage;
+
     public ChatFragment() {
         // Required empty public constructor
     }
@@ -95,6 +97,8 @@ public class ChatFragment extends Fragment {
         favPersonButton.setOnClickListener(v -> toggleFavoriteStatus());
 
         blockButton.setOnClickListener(v -> showBlockConfirmationDialog());
+
+        overlayImage = view.findViewById(R.id.overlayImage);
 
         return view;
     }
@@ -145,6 +149,16 @@ public class ChatFragment extends Fragment {
                 startMessageListenerService(); // Start the service with the old receiverUid
             }
         }
+
+        overlayImage.animate() //maybe move it to the top
+                .alpha(0.0f)
+                .setDuration(1300) // Duration of the fade-out animation in milliseconds
+                .withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        overlayImage.setVisibility(View.GONE);
+                    }
+                });
     }
 
 

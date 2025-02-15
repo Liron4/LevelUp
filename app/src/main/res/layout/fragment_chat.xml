@@ -7,6 +7,15 @@
     android:orientation="vertical"
     tools:context=".Fragments.ChatFragment">
 
+    <ImageView
+        android:id="@+id/overlayImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/loadingoverlay"
+        android:scaleType="centerCrop"
+        android:visibility="visible"
+        android:alpha="1.0" />
+
     <!-- Top bar with exit button, nickname, and block button -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -81,4 +90,6 @@
             android:scaleType="fitXY"
             android:src="@drawable/sendbtnimage" />
     </LinearLayout>
+
+
 </LinearLayout>
