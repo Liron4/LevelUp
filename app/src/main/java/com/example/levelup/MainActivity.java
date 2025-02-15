@@ -49,10 +49,13 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
 
-        // Start the msg service
+// Start the msg service
         Intent serviceIntent = new Intent(this, MessageListenerService.class);
-        startService(serviceIntent);
-        Log.d("MainActivity", "MessageService started");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ContextCompat.startForegroundService(this, serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
 
         // Handle navigation action from notification
         handleIntent(getIntent());
