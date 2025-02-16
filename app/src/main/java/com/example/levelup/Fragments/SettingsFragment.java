@@ -33,15 +33,17 @@ public class SettingsFragment extends Fragment {
     private List<String> favoriteGames;
     private ImageButton bellButton;
 
+    private FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
 
         gamesRecyclerView = view.findViewById(R.id.gamesRecyclerView);
         gamesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
+        String myUID = currentUser.getUid();
         favoriteGames = new ArrayList<>();
-        adapter = new FavoriteGamesAdapter(favoriteGames);
+        adapter = new FavoriteGamesAdapter(favoriteGames, myUID);
         gamesRecyclerView.setAdapter(adapter);
 
         bellButton = view.findViewById(R.id.bellButton);
@@ -53,7 +55,7 @@ public class SettingsFragment extends Fragment {
     }
 
     private void fetchFavoriteGames() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
             DatabaseReference userRef = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference("users").child(userId).child("favoriteGames");

@@ -63,53 +63,27 @@ public class ContactsList extends Fragment {
         databaseReference = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
         mAuth = FirebaseAuth.getInstance(); // Ensure mAuth is initialized here
 
+
+
 // Initialize the BroadcastReceiver
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if ("com.example.levelup.NEW_MESSAGE".equals(intent.getAction())) {
-                    String fromUid = intent.getStringExtra("from");
+                    String username = intent.getStringExtra("username");
                     String content = intent.getStringExtra("content");
-                    long timestamp = intent.getLongExtra("timestamp", 0);
+                    long timestamp = intent.getLongExtra("timestamp", 0); // Default value is 0 if TIMESTAMP=NULL
                     Log.d("ContactsList", "Broadcast received: " + content);
-                    handleNewMessage(fromUid, content, timestamp);
+                    updateRecyclerViewWithNewMessage(username, content, timestamp);
+
                 }
             }
         };
 
     }
 
-    public void handleNewMessage(String fromUid, String content, long timestamp) {
-        // Fetch the nickname from the UID
-        DatabaseReference userRef = databaseReference.child("users").child(fromUid).child("nickname");
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String nickname = dataSnapshot.getValue(String.class);
-                if (nickname != null) {
-                    updateRecyclerViewWithNewMessage(nickname, content, timestamp);
-                }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("ContactsList", "Failed to fetch nickname for user: " + fromUid + ". Error: " + databaseError.getMessage());
-            }
-        });
-    }
-
-    private void updateRecyclerViewWithNewMessage(String nickname, String latestMessage, long timestamp) {
-        for (UserProfile userProfile : userList) {
-            if (userProfile.nickname.equals(nickname)) {
-                userProfile.latestMessage = latestMessage + " 🟣";
-                userProfile.timestamp = timestamp;
-                userList.remove(userProfile);
-                userList.add(0, userProfile);
-                userListAdapter.notifyDataSetChanged();
-                return;
-            }
-        }
-    }
+    // חלק א' של הפרגמנט - להביא את הרשימת אנשי קשר!
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -164,6 +138,174 @@ public class ContactsList extends Fragment {
         });
     }
 
+
+
+
+    private void fetchFavoriteList() {
+        Log.d("ContactsList", "fetchFavoriteList started");
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+            Log.e("FirebaseAuth", "User is not logged in! Aborting fetchFavoriteList.");
+            return;
+        }
+
+        String currentUserUid = currentUser.getUid();
+        Log.d("FirebaseAuth", "User ID: " + currentUserUid);
+
+        DatabaseReference favListRef = databaseReference.child("users").child(currentUserUid).child("favList"); // תביא קישור לרשימת המועדפים של המשתמש הנוכחי
+
+        favListRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<String> favList = new ArrayList<>();
+
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String favoriteNickname = snapshot.getValue(String.class);
+                    if (favoriteNickname != null && !favoriteNickname.isEmpty()) {
+                        favList.add(favoriteNickname); // תוסיף את השם לרשימת המועדפים באפליקציה
+                    } else {
+                        Log.w("ContactsList", "empty favorite nickname.");
+                    }
+                }
+
+                Log.d("ContactsList", "Fetched favorite list: " + favList);
+
+                if (!favList.isEmpty()) { // אם יש מועדפים
+                    fetchLatestMessages(favList);
+                } else {
+                    Log.w("ContactsList", "Favorite list is empty, skipping message fetch.");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("ContactsList", "Failed to fetch favorite list: " + databaseError.getMessage());
+            }
+        });
+
+        Log.d("ContactsList", "fetchFavoriteList finished");
+    }
+
+    private void fetchLatestMessages(List<String> favList) { // קיבלת את הרשימה כסטרינג ולא כפרופיל שמכיל עוד דברים משם
+        Log.d("ContactsList", "fetchLatestMessages started with " + favList.size() + " favorite users.");
+
+        List<UserProfile> tempUserList = new ArrayList<>(); // To transfer the names to the RecyclerView as profiles
+
+        for (String nickname : favList) { // נתחיל להביא את הפרופילים של כל המשתמשים שנמצאים ברשימת המועדפים
+            Log.d("ContactsList", "Fetching user profile for nickname: " + nickname);
+
+            Query usersQuery = databaseReference.child("users").orderByChild("nickname").equalTo(nickname); // שמרתי קישור לפרופיל של קורל
+
+            usersQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) { // עובר על כל המשתמשים שנמצאו עם אותו השם
+                        String userUid = snapshot.getKey(); // קישור לת.ז של המשתמש, נמצא תמיד משתמש בודד
+                        Log.d("ContactsList", "Found user UID: " + userUid + " for nickname: " + nickname);
+                        fetchLatestMessageForUser(userUid, nickname, tempUserList, favList.size()); // נביא את ההודעה האחרונה למשתמש הספציפי שמצאנו!
+                    }
+                }
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e("ContactsList", "Failed to fetch user data for " + nickname + ": " + databaseError.getMessage());
+                }
+
+            });
+        }
+    }
+
+    private void fetchLatestMessageForUser(String userUid, String favNickname, List<UserProfile> tempUserList, int favListSize) {
+        Log.d("ContactsList", "Fetching latest message for user UID: " + userUid);
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String currentUserUid = currentUser.getUid();
+        String chatPath = (currentUserUid.compareTo(userUid) < 0) // נבדוק מי קטן יותר ונסדר את הקישור לפי זה
+                ? currentUserUid + "_" + userUid
+                : userUid + "_" + currentUserUid;
+
+        DatabaseReference chatPathRef = databaseReference.child("chats").child(chatPath); // קישור לצ'אט של המשתמש הנוכחי עם המשתמש שהגענו אליו
+
+        chatPathRef.limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    Log.w("ContactsList", "No chat path found for: " + chatPath);
+                    addUserProfileWithNoMessages(favNickname, tempUserList); // נוסיף את המשתמש לרשימה עם הודעה ריקה
+                    checkIfFinished();
+                    return;
+                }
+
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Message message = snapshot.getValue(Message.class);
+                    if (message != null) {
+                        UserProfile userProfile = new UserProfile();
+                        userProfile.nickname = favNickname;
+                        if (message.getUsername().equals(CurrentUsernickname)) {
+                            userProfile.latestMessage = "You: " + message.getContent();
+                        } else {
+                            userProfile.latestMessage = message.getContent();
+                        }
+                        userProfile.timestamp = message.getTimestamp();
+                        tempUserList.add(userProfile);
+                        Log.d("ContactsList", "Message fetched: " + message.getContent());
+                    }
+                }
+
+                checkIfFinished();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("ContactsList", "Failed to fetch messages for chat: " + chatPath + ". Error: " + databaseError.getMessage());
+            }
+
+            private void checkIfFinished() { // בגלל שהקוד א-סינכרוני, נצטרך לבדוק האם כבר סיימנו עם טיפול המשתמשים בכל הבאת הודעה
+                   if (tempUserList.size() == favListSize) {
+                    Log.d("ContactsList", "All messages fetched. Sorting and displaying.");
+                    sortAndDisplayUsers(tempUserList);
+                }
+            }
+        });
+    }
+
+    private void addUserProfileWithNoMessages(String favNickname, List<UserProfile> tempUserList) {
+        UserProfile userProfile = new UserProfile();
+        userProfile.nickname = favNickname;
+        userProfile.latestMessage = "No recent messages";
+        userProfile.timestamp = 0;
+        tempUserList.add(userProfile); // הגדלנו את הרשימה עם משתמש חסר הודעה
+        Log.d("ContactsList", "Added user with no messages: " + favNickname);
+    }
+
+    private void sortAndDisplayUsers(List<UserProfile> tempUserList) {
+        Collections.sort(tempUserList, (u1, u2) -> Long.compare(u2.timestamp, u1.timestamp)); // מיון לפי הזמן ההודעה מפונקציית ההשוואה של ג'אווה
+        userList.clear();
+        userList.addAll(tempUserList);
+        userListAdapter.notifyDataSetChanged();
+    }
+
+    // חלק ב' - לעדכן עם המשדר את הרשימת אנשי קשר בזמן שאנחנו בפרגמנט
+
+
+
+    private void updateRecyclerViewWithNewMessage(String nickname, String latestMessage, long timestamp) {
+        for (UserProfile userProfile : userList) {
+            if (userProfile.nickname.equals(nickname)) {
+                userProfile.latestMessage = latestMessage + " 🟣";
+                userProfile.timestamp = timestamp;
+                userList.remove(userProfile);
+                userList.add(0, userProfile);
+                userListAdapter.notifyDataSetChanged();
+                return;
+            }
+        }
+    }
+
+    // PAUSE & RESUME - כדי להפעיל ולכבות את קבלת ההודעות בזמן שאנחנו בפרגמנט
+
     @Override
     public void onPause() {
         super.onPause();
@@ -192,196 +334,12 @@ public class ContactsList extends Fragment {
 
         overlayImage.animate()
                 .alpha(0.0f)
-                .setDuration(2000) // Duration of the fade-out animation in milliseconds
+                .setDuration(1500) // Duration of the fade-out animation in milliseconds
                 .withEndAction(new Runnable() {
                     @Override
                     public void run() {
                         overlayImage.setVisibility(View.GONE);
                     }
                 });
-    }
-
-    private void fetchFavoriteList() {
-        Log.d("ContactsList", "fetchFavoriteList started");
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-        if (currentUser == null) {
-            Log.e("FirebaseAuth", "User is not logged in! Aborting fetchFavoriteList.");
-            return;
-        }
-
-        String currentUserUid = currentUser.getUid();
-        Log.d("FirebaseAuth", "User ID: " + currentUserUid);
-
-        DatabaseReference favListRef = databaseReference.child("users").child(currentUserUid).child("favList");
-
-        favListRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                List<String> favList = new ArrayList<>();
-
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    String favoriteNickname = snapshot.getValue(String.class);
-                    if (favoriteNickname != null && !favoriteNickname.isEmpty()) {
-                        favList.add(favoriteNickname);
-                    } else {
-                        Log.w("ContactsList", "Encountered null or empty favorite nickname.");
-                    }
-                }
-
-                Log.d("ContactsList", "Fetched favorite list: " + favList);
-
-                if (!favList.isEmpty()) {
-                    fetchLatestMessages(favList);
-                } else {
-                    Log.w("ContactsList", "Favorite list is empty, skipping message fetch.");
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("ContactsList", "Failed to fetch favorite list: " + databaseError.getMessage());
-            }
-        });
-
-        Log.d("ContactsList", "fetchFavoriteList finished");
-    }
-
-    private void fetchLatestMessages(List<String> favList) {
-        Log.d("ContactsList", "fetchLatestMessages started with " + favList.size() + " favorite users.");
-
-        List<UserProfile> tempUserList = new ArrayList<>();
-        AtomicInteger processedUsers = new AtomicInteger(0);  // To track when all requests are completed
-
-        for (String nickname : favList) {
-            Log.d("ContactsList", "Fetching user profile for nickname: " + nickname);
-
-            Query usersQuery = databaseReference.child("users").orderByChild("nickname").equalTo(nickname);
-
-            usersQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (!dataSnapshot.exists()) {
-                        Log.w("ContactsList", "No user found for nickname: " + nickname);
-                        checkIfFinished();
-                        return;
-                    }
-
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        String userUid = snapshot.getKey();
-                        Log.d("ContactsList", "Found user UID: " + userUid + " for nickname: " + nickname);
-                        fetchLatestMessageForUser(userUid, nickname, tempUserList, favList.size());
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.e("ContactsList", "Failed to fetch user data for " + nickname + ": " + databaseError.getMessage());
-                    checkIfFinished();
-                }
-
-                private void checkIfFinished() {
-                    if (processedUsers.incrementAndGet() == favList.size()) {
-                        Log.d("ContactsList", "All users processed. Sorting and displaying.");
-                        sortAndDisplayUsers(tempUserList);
-                    }
-                }
-            });
-        }
-    }
-
-    private void fetchLatestMessageForUser(String userUid, String favNickname, List<UserProfile> tempUserList, int favListSize) {
-        Log.d("ContactsList", "Fetching latest message for user UID: " + userUid);
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            Log.e("FirebaseAuth", "User is not logged in! Skipping fetchLatestMessageForUser.");
-            return;
-        }
-
-        String currentUserUid = currentUser.getUid();
-        String chatPath = (currentUserUid.compareTo(userUid) < 0)
-                ? currentUserUid + "_" + userUid
-                : userUid + "_" + currentUserUid;
-
-        DatabaseReference chatPathRef = databaseReference.child("chats").child(chatPath);
-
-        chatPathRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    Log.w("ContactsList", "No chat path found for: " + chatPath);
-                    addUserProfileWithNoMessages(userUid, favNickname, tempUserList);
-                    checkIfFinished();
-                    return;
-                }
-
-                chatPathRef.limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (!dataSnapshot.exists()) {
-                            Log.w("ContactsList", "No messages found for chat path: " + chatPath);
-                            addUserProfileWithNoMessages(userUid, favNickname, tempUserList);
-                            checkIfFinished();
-                            return;
-                        }
-
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            Message message = snapshot.getValue(Message.class);
-                            if (message != null) {
-                                UserProfile userProfile = new UserProfile();
-                                userProfile.nickname = favNickname;  // Use favNickname from favList
-                                if (message.getUsername().equals(CurrentUsernickname)) {
-                                    userProfile.latestMessage = "You: " + message.getContent();
-                                } else {
-                                    userProfile.latestMessage = message.getContent();
-                                }
-                                userProfile.timestamp = message.getTimestamp();
-                                tempUserList.add(userProfile);
-                                Log.d("ContactsList", "Message fetched: " + message.getContent());
-                            }
-                        }
-
-                        checkIfFinished();
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Log.e("ContactsList", "Failed to fetch messages for chat: " + chatPath + ". Error: " + databaseError.getMessage());
-                        checkIfFinished();
-                    }
-                });
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("ContactsList", "Failed to check chat path: " + chatPath + ". Error: " + databaseError.getMessage());
-                checkIfFinished();
-            }
-
-            private void checkIfFinished() {
-                if (tempUserList.size() == favListSize) {
-                    Log.d("ContactsList", "All messages fetched. Sorting and displaying.");
-                    sortAndDisplayUsers(tempUserList);
-                }
-            }
-        });
-    }
-
-    private void addUserProfileWithNoMessages(String userUid, String favNickname, List<UserProfile> tempUserList) {
-        UserProfile userProfile = new UserProfile();
-        userProfile.nickname = favNickname;
-        userProfile.latestMessage = "No recent messages";
-        userProfile.timestamp = 0;
-        tempUserList.add(userProfile);
-        Log.d("ContactsList", "Added user with no messages: " + favNickname);
-    }
-
-    private void sortAndDisplayUsers(List<UserProfile> tempUserList) {
-        Collections.sort(tempUserList, (u1, u2) -> Long.compare(u2.timestamp, u1.timestamp));
-        userList.clear();
-        userList.addAll(tempUserList);
-        userListAdapter.notifyDataSetChanged();
     }
 }

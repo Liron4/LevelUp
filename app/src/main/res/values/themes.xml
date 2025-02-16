@@ -6,5 +6,13 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:statusBarColor">@color/statusBarColor</item>
+        <item name="android:buttonStyle">@style/CustomButtonStyle</item>
     </style>
+
+    <style name="CustomButtonStyle" parent="Widget.Material3.Button">
+        <item name="android:background">@drawable/buttondesign</item>
+        <item name="android:backgroundTint">@null</item>
+    </style>
+
+
 </resources>

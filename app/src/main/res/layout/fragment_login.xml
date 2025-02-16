@@ -41,21 +41,29 @@
             android:textColor="@color/textColor"
             />
 
-        <Button
+        <android.widget.Button
             android:id="@+id/loginButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:backgroundTint="@android:color/holo_red_light"
-            android:text="Login" />
+            style="@style/CustomButtonStyle"
+            android:padding="16dp"
+            android:text="Login"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-        <Button
+        <android.widget.Button
             android:id="@+id/createProfileButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:backgroundTint="@android:color/holo_red_light"
-            android:text="Create A Profile" />
+            android:background="@drawable/buttondesign"
+            android:padding="16dp"
+            android:text="Create A Profile"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
