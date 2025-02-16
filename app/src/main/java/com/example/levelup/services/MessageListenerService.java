@@ -108,7 +108,6 @@ public class MessageListenerService extends Service {
                         broadcastIntent.putExtra("username", message.getUsername());
                         broadcastIntent.putExtra("content", message.getContent());
                         broadcastIntent.putExtra("timestamp", message.getTimestamp());
-                        broadcastIntent.putExtra("from", message.getFrom());
                         Log.d("MessageListenerService", "Broadcasting message: " + message.getContent());
                         sendBroadcast(broadcastIntent);
 

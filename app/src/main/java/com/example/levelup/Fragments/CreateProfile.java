@@ -56,7 +56,6 @@ public class CreateProfile extends Fragment {
     private Button registerButton;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
-
     private List<String> selectedGames = new ArrayList<>();
 
     public CreateProfile() {
@@ -77,7 +76,7 @@ public class CreateProfile extends Fragment {
         deleteButton = view.findViewById(R.id.DeleteButton);
         registerButton = view.findViewById(R.id.registerButton);
 
-        mAuth = FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance(); // חשוב להרשמה לתוך מערכת המשתמשים
         databaseReference = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference("users");
 
         registerButton.setOnClickListener(v -> {
@@ -122,6 +121,12 @@ public class CreateProfile extends Fragment {
     }
 
     private void checkNicknameUniqueAndRegister(String email, String password, String nickname) {
+        // תבדוק לי אם הכינוי לא ריק
+        if (nickname.isEmpty()) {
+            Toast.makeText(getActivity(), "Please enter a nickname.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         databaseReference.orderByChild("nickname").equalTo(nickname).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 if (task.getResult().getChildrenCount() == 0) {
@@ -140,56 +145,52 @@ public class CreateProfile extends Fragment {
             Toast.makeText(getActivity(), "Please enter email and password.", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // תבדוק אם כמות המשחקים ברשימה הוא בין 1 ל-7 ותסביר לו שהוא חייב משחק אחד לפחות ולא יותר מ-7
+        if (selectedGames.size() < 1 || selectedGames.size() > 7) {
+            Toast.makeText(getActivity(), "Please select between 1 and 7 games.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(getActivity(), task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null) {
+                        if (user != null) { // נוי 21152
                             String userId = user.getUid();
                             UserProfile userProfile = new UserProfile(nickname, selectedGames, null, null);
                             databaseReference.child(userId).setValue(userProfile);
                             Toast.makeText(getActivity(), "Registration successful.", Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        Toast.makeText(getActivity(), "Registration failed.", Toast.LENGTH_SHORT).show();
+                        // כתוב לי תקלה ספציפית של הפיירבייס
+                        Toast.makeText(getActivity(), task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    private void updateSelectedGamesTextView() {
-        StringBuilder gamesText = new StringBuilder();
-        for (int i = 0; i < selectedGames.size(); i++) {
-            gamesText.append(selectedGames.get(i));
-            if (i < selectedGames.size() - 1) {
-                gamesText.append(", ");
-            }
-        }
 
-        SpannableString spannableString = new SpannableString(gamesText.toString());
-        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, gamesText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        gamesSelectedTextView.setText(spannableString);
-    }
 
-    // 2. Method to perform the RAWG API search using OkHttp
+    // 2. Method to perform the RAWG API search using OkHttp when user presses Enter
     private void searchGames(String query) {
         List<String> localResults = loadLocalGames(query);
         if (!localResults.isEmpty()) {
-            showGameResults(localResults);
+            showGameResults(localResults); // מציגה לו את האפשרויות ואז הוא צריך ללחוץ
         } else {
             try {
                 String encodedQuery = URLEncoder.encode(query, "UTF-8");
                 String url = "https://api.rawg.io/api/games?key=ff52dd671c9045c0a820c272cc243062"
                         + "&search=" + encodedQuery
-                        + "&page_size=5";
+                        + "&page_size=5"; // מייצרת שאילתא עם פרמטרים לאיי פי איי
 
-                OkHttpClient client = new OkHttpClient(); // ספרייה לעשות קריאות API
-                Request request = new Request.Builder().url(url).build(); // אובייקש בקשה מהספרייה
+                OkHttpClient client = new OkHttpClient(); // מנהל לי את הקריאות HTTP ל-API
+                Request request = new Request.Builder().url(url).build(); // יוצרת בקשה לשרת
 
                 client.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         getActivity().runOnUiThread(() -> {
-                            Toast.makeText(getContext(), "API error", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "No network connection", Toast.LENGTH_SHORT).show();
                         }); // תקלה מסוג אין לי אינטרנט
                     }
 
@@ -197,12 +198,13 @@ public class CreateProfile extends Fragment {
                     public void onResponse(Call call, Response response) throws IOException {
                         if (!response.isSuccessful()) {
                             onFailure(call, new IOException("Unexpected response " + response));
-                            return; // יש לי אינטרנט, אבל הAPI לא בא לו לתת לי תשובות
+                            return; // API NOT WORKING
                         }
-                        String responseData = response.body().string();
+                        // קיבלתי תשובה תקינה
+                        String responseData = response.body().string(); // Ekoloko, Mikmak
                         List<String> gameResults = parseGameResults(responseData);
-                        getActivity().runOnUiThread(() -> {
-                            if (gameResults.isEmpty()) { // מה עם הכל עבד אבל קיבלתי רשימה ריקה?
+                        getActivity().runOnUiThread(() -> { // תציג לי את התוצאות על המסך
+                            if (gameResults.isEmpty()) { // המשחק שהמשתמש חיפש לא קיים
                                 Toast.makeText(getContext(), "No games found", Toast.LENGTH_SHORT).show();
                             } else {
                                 showGameResults(gameResults);
@@ -215,6 +217,8 @@ public class CreateProfile extends Fragment {
             }
         }
     }
+
+    // קופסאות שחורות
 
     // 4. Fallback: Filter the local games resource
     private List<String> loadLocalGames(String query) {
@@ -279,6 +283,20 @@ public class CreateProfile extends Fragment {
                     }
                 })
                 .show();
+    }
+
+    private void updateSelectedGamesTextView() {
+        StringBuilder gamesText = new StringBuilder();
+        for (int i = 0; i < selectedGames.size(); i++) {
+            gamesText.append(selectedGames.get(i));
+            if (i < selectedGames.size() - 1) {
+                gamesText.append(", ");
+            }
+        }
+
+        SpannableString spannableString = new SpannableString(gamesText.toString());
+        spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, gamesText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        gamesSelectedTextView.setText(spannableString);
     }
 
 }
