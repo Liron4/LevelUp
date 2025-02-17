@@ -1,6 +1,7 @@
 package com.example.levelup.Fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,8 +32,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingsFragment extends Fragment {
-
+public class SettingsFragment extends Fragment implements FavoriteGamesAdapter.OnGameDeleteListener {
     private RecyclerView gamesRecyclerView;
     private FavoriteGamesAdapter adapter;
     private List<String> favoriteGames;
@@ -49,7 +49,7 @@ public class SettingsFragment extends Fragment {
         gamesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         String myUID = currentUser.getUid();
         favoriteGames = new ArrayList<>();
-        adapter = new FavoriteGamesAdapter(favoriteGames, myUID);
+        adapter = new FavoriteGamesAdapter(favoriteGames, this);
         gamesRecyclerView.setAdapter(adapter);
 
         bellButton = view.findViewById(R.id.bellButton);
@@ -61,6 +61,49 @@ public class SettingsFragment extends Fragment {
 
         return view;
     }
+
+    @Override
+    public void onDeleteGame(int position, String gameName) {
+        if (favoriteGames.size() <= 1) {
+            Toast.makeText(requireContext(), "You must have at least one favourite game", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Remove the game from the list
+        favoriteGames.remove(position);
+        adapter.notifyItemRemoved(position);
+        adapter.notifyItemRangeChanged(position, favoriteGames.size());
+
+        // Remove the game from the Firebase Realtime Database
+        DatabaseReference userRef = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/")
+                .getReference("users").child(currentUser.getUid()).child("favoriteGames");
+
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String game = snapshot.getValue(String.class);
+                    if (game != null && game.equals(gameName)) {
+                        snapshot.getRef().removeValue().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Log.d("SettingsFragment", "Successfully removed game: " + gameName);
+                            } else {
+                                Log.e("SettingsFragment", "Failed to remove game: " + gameName, task.getException());
+                            }
+                        });
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("SettingsFragment", "Database error: " + databaseError.getMessage());
+            }
+        });
+    }
+
+
 
     private void fetchFavoriteGames() {
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -159,6 +202,7 @@ public class SettingsFragment extends Fragment {
         }
         Toast.makeText(getContext(), "Game not found", Toast.LENGTH_SHORT).show();
     }
+
 
     private void addGameToDatabase(String game) {
         if (currentUser != null) {

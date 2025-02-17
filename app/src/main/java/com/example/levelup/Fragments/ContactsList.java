@@ -290,8 +290,9 @@ public class ContactsList extends Fragment {
 
 
     private void updateRecyclerViewWithNewMessage(String nickname, String latestMessage, long timestamp) {
-        for (UserProfile userProfile : userList) {
-            if (userProfile.nickname.equals(nickname)) {
+        for (UserProfile userProfile : userList) { // נעבור על כל המשתמשים ברשימה
+            if (userProfile.nickname.equals(nickname)) { // אם מצאנו את המשתמש שהגיעה ממנו ההודעה
+                // אז נעשה לו עדכונים
                 userProfile.latestMessage = latestMessage + " 🟣";
                 userProfile.timestamp = timestamp;
                 userList.remove(userProfile);

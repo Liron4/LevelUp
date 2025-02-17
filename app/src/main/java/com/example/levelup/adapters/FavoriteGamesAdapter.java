@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,11 +22,12 @@ import java.util.List;
 public class FavoriteGamesAdapter extends RecyclerView.Adapter<FavoriteGamesAdapter.FavoriteGameViewHolder> {
 
     private List<String> favoriteGames;
-    private String userId;
 
-    public FavoriteGamesAdapter(List<String> favoriteGames, String userId) {
+    private OnGameDeleteListener onGameDeleteListener;
+
+    public FavoriteGamesAdapter(List<String> favoriteGames, OnGameDeleteListener listener) {
         this.favoriteGames = favoriteGames;
-        this.userId = userId;
+        this.onGameDeleteListener = listener;
     }
 
     @NonNull
@@ -41,38 +43,9 @@ public class FavoriteGamesAdapter extends RecyclerView.Adapter<FavoriteGamesAdap
         holder.gameNameTextView.setText(gameName);
 
         holder.deleteTextView.setOnClickListener(v -> {
-            // Remove the game from the list
-            favoriteGames.remove(position);
-            notifyItemRemoved(position);
-            notifyItemRangeChanged(position, favoriteGames.size());
-
-            // Remove the game from the Firebase Realtime Database
-            DatabaseReference userRef = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/")
-                    .getReference("users").child(userId).child("favoriteGames");
-
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        String game = snapshot.getValue(String.class);
-                        if (game != null && game.equals(gameName)) {
-                            snapshot.getRef().removeValue().addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    Log.d("FavoriteGamesAdapter", "Successfully removed game: " + gameName);
-                                } else {
-                                    Log.e("FavoriteGamesAdapter", "Failed to remove game: " + gameName, task.getException());
-                                }
-                            });
-                            break;
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Log.e("FavoriteGamesAdapter", "Database error: " + databaseError.getMessage());
-                }
-            });
+            if (onGameDeleteListener != null) {
+                onGameDeleteListener.onDeleteGame(position, gameName);
+            }
         });
     }
 
@@ -90,5 +63,9 @@ public class FavoriteGamesAdapter extends RecyclerView.Adapter<FavoriteGamesAdap
             gameNameTextView = itemView.findViewById(R.id.gameNameTextView);
             deleteTextView = itemView.findViewById(R.id.deleteTextView);
         }
+    }
+
+    public interface OnGameDeleteListener {
+        void onDeleteGame(int position, String gameName);
     }
 }
