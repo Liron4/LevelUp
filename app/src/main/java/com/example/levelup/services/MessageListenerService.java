@@ -13,7 +13,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import com.example.levelup.MainActivity;
+import com.example.levelup.activities.MainActivity;
 import com.example.levelup.R;
 import com.example.levelup.models.Message;
 import com.google.firebase.database.ChildEventListener;
@@ -31,6 +31,8 @@ public class MessageListenerService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.d("MessageListenerService", "Service created");
+        createNotificationChannel(); // this must be created first of all. StackOverflow
+        startForegroundService();
 
         // Retrieve UID from SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("LoginPrefs", Context.MODE_PRIVATE);
@@ -38,9 +40,7 @@ public class MessageListenerService extends Service {
 
         if (currentUid != null) {
             Log.d("MessageListenerService", "UID retrieved: " + currentUid);
-            createNotificationChannel();
             listenForMessages(currentUid, null);
-            startForegroundService();
         } else {
             Log.e("MessageListenerService", "UID not found. Service will not function properly.");
         }
@@ -48,15 +48,20 @@ public class MessageListenerService extends Service {
 
     private void startForegroundService() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, notificationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        // Build the notification using the same importance as the channel
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Message Listener Service")
                 .setContentText("Listening for new messages")
                 .setContentIntent(pendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setSilent(true)
-                .setSmallIcon(R.drawable.bellicon); // Set the bell icon
+                .setPriority(NotificationCompat.PRIORITY_LOW)  // Match channel importance
+                 .setSilent(true)  // Remove silent flag so the notification is fully visible
+                .setSmallIcon(R.drawable.bellicon)  // Ensure this icon meets Android guidelines (white on transparent background)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE);
+
         startForeground(1, builder.build());
     }
 
@@ -85,6 +90,8 @@ public class MessageListenerService extends Service {
 
     private void listenForMessages(String uid, String chatIgnoreUid) {
         Log.d("MessageListenerService", "Listening for notifications for UID: " + uid + " ignoring: " + chatIgnoreUid);
+
+        // מסיר מאזין קודם אם קיים כדי למנוע כפילויות
         if (messageListener != null) {
             FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/")
                     .getReference("notifications")
@@ -92,65 +99,63 @@ public class MessageListenerService extends Service {
                     .removeEventListener(messageListener);
         }
 
+        // מאזין חדש להודעות
         messageListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
                 Log.d("MessageListenerService", "Notification added: " + dataSnapshot.getKey());
                 Message message = dataSnapshot.getValue(Message.class);
-                if (message != null && message.getUsername() != null && !message.isNotificationSent()) {
-                    if (chatIgnoreUid == null || !message.getFrom().equals(chatIgnoreUid)) {
-                        Log.d("MessageListenerService", "New notification from: " + message.getUsername() + ", ID: " + dataSnapshot.getKey());
-                        sendNotification(message);
 
-                        // Pass the message to ContactsList fragment if it is visible
-                        Intent broadcastIntent = new Intent("com.example.levelup.NEW_MESSAGE");
-                        broadcastIntent.setPackage(getPackageName());  // Ensure it is only sent to your app
-                        broadcastIntent.putExtra("username", message.getUsername());
-                        broadcastIntent.putExtra("content", message.getContent());
-                        broadcastIntent.putExtra("timestamp", message.getTimestamp());
-                        Log.d("MessageListenerService", "Broadcasting message: " + message.getContent());
-                        sendBroadcast(broadcastIntent);
-
-                        // Set notificationsent to true
-                        dataSnapshot.getRef().child("notificationSent").setValue(true);
-                    } else {
-                        // Set notificationsent to true so he wont be notified after he exits chat
-                        dataSnapshot.getRef().child("notificationSent").setValue(true);
-                        Log.d("MessageListenerService", "Ignoring notification from current chat user: " + message.getUsername());
-                    }
-                    // Delete the message from the database
-                    dataSnapshot.getRef().removeValue();
-                } else {
-                    Log.d("MessageListenerService", "Notification is null, username is null, or notification already sent, ID: " + dataSnapshot.getKey());
+                if (message == null || message.getUsername() == null) {
+                    Log.d("MessageListenerService", "Invalid message or missing username.");
+                    return;
                 }
+
+                boolean isFromCurrentChat = chatIgnoreUid != null && message.getFrom().equals(chatIgnoreUid);
+
+                // מעדכן שההתראה נשלחה (גם אם זו שיחה פעילה)
+                dataSnapshot.getRef().child("notificationSent").setValue(true);
+
+                if (!isFromCurrentChat && !message.isNotificationSent()) {
+                    Log.d("MessageListenerService", "New notification from: " + message.getUsername());
+                    sendNotification(message);
+                    broadcastMessageToContactsList(message);
+                } else {
+                    Log.d("MessageListenerService", "Ignoring notification from current chat user: " + message.getUsername());
+                }
+
+                // מוחק את ההודעה מהמסד
+                dataSnapshot.getRef().removeValue();
             }
 
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                // Handle child changed if needed
-            }
-
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
             @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                // Handle child removed if needed
-            }
-
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
             @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-                // Handle child moved if needed
-            }
-
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("MessageListenerService", "Database error: " + databaseError.getMessage());
-            }
+            public void onCancelled(DatabaseError databaseError) {}
         };
 
+        // מחבר את המאזין למסד הנתונים
         FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/")
                 .getReference("notifications")
                 .child(uid)
                 .addChildEventListener(messageListener);
     }
+
+    // פונקציה לשליחת ברודקאסט ל-ContactsList
+    private void broadcastMessageToContactsList(Message message) {
+        Intent broadcastIntent = new Intent("com.example.levelup.NEW_MESSAGE");
+        broadcastIntent.setPackage(getPackageName());
+        broadcastIntent.putExtra("username", message.getUsername());
+        broadcastIntent.putExtra("content", message.getContent());
+        broadcastIntent.putExtra("timestamp", message.getTimestamp());
+        Log.d("MessageListenerService", "Broadcasting message: " + message.getContent());
+        sendBroadcast(broadcastIntent);
+    }
+
 
     private void sendNotification(Message message) {
         String groupKey = "com.example.levelup.NOTIFICATIONS_" + message.getFrom();

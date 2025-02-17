@@ -43,7 +43,6 @@
             android:id="@+id/action_searchEngine_to_chatFragment"
             app:destination="@id/chatFragment"
             app:popUpTo="@id/searchEngine"
-            app:popUpToInclusive="false"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -59,7 +58,12 @@
             />
         <action
             android:id="@+id/action_searchEngine_to_settingsFragment"
-            app:destination="@id/settingsFragment" />
+            app:destination="@id/settingsFragment"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left"
+            />
     </fragment>
     <fragment
         android:id="@+id/chatFragment"

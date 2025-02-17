@@ -1,10 +1,15 @@
 package com.example.levelup.Fragments;
 
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,6 +37,7 @@ public class SettingsFragment extends Fragment {
     private FavoriteGamesAdapter adapter;
     private List<String> favoriteGames;
     private ImageButton bellButton;
+    private EditText searchBar;
 
     private FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -47,7 +53,9 @@ public class SettingsFragment extends Fragment {
         gamesRecyclerView.setAdapter(adapter);
 
         bellButton = view.findViewById(R.id.bellButton);
+        searchBar = view.findViewById(R.id.searchBar);
         setupBellButton();
+        setupSearchBar();
 
         fetchFavoriteGames();
 
@@ -80,8 +88,22 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupBellButton() {
+        bellButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showNotificationImportanceDialog();
+            }
+        });
         applyColorMatrixForDarkMode();
         loadBellGif();
+    }
+
+    private void showNotificationImportanceDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("Notification Importance")
+                .setMessage("Notifications are important for the chat to function properly. Please ensure they are enabled.")
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
     }
 
     private void applyColorMatrixForDarkMode() {
@@ -104,5 +126,64 @@ public class SettingsFragment extends Fragment {
                 .asGif()
                 .load(R.drawable.bellgif)
                 .into(bellButton);
+    }
+
+    private void setupSearchBar() {
+        searchBar.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    String query = searchBar.getText().toString().trim();
+                    searchGame(query);
+                    return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void searchGame(String query) {
+        String[] gamesList = getResources().getStringArray(R.array.popular_multiplayer_games);
+        for (String game : gamesList) {
+            if (game.equalsIgnoreCase(query)) {
+                if (!favoriteGames.contains(game)) {
+                    favoriteGames.add(game);
+                    adapter.notifyDataSetChanged();
+                    addGameToDatabase(game);
+                    Toast.makeText(getContext(), "Game added to favorites", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Game already in favorites", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+        }
+        Toast.makeText(getContext(), "Game not found", Toast.LENGTH_SHORT).show();
+    }
+
+    private void addGameToDatabase(String game) {
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            DatabaseReference userRef = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference("users").child(userId).child("favoriteGames");
+
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    List<String> gamesList = new ArrayList<>();
+                    if (dataSnapshot.exists()) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String existingGame = snapshot.getValue(String.class);
+                            gamesList.add(existingGame);
+                        }
+                    }
+                    gamesList.add(game);
+                    userRef.setValue(gamesList);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    // Handle possible errors.
+                }
+            });
+        }
     }
 }

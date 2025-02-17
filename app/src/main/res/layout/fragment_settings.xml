@@ -17,9 +17,12 @@
             android:id="@+id/searchBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:drawable/edit_text"
+            android:background="@android:color/transparent"
+            android:textColorHint="@android:color/holo_red_light"
             android:drawablePadding="8dp"
             android:hint="Search games"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
             android:padding="8dp" />
 
         <!-- RecyclerView -->

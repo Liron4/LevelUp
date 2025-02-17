@@ -1,4 +1,4 @@
-package com.example.levelup;
+package com.example.levelup.activities;
 
 import android.Manifest;
 import android.content.Intent;
@@ -6,7 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,7 +15,7 @@ import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
-import com.example.levelup.Fragments.ChatFragment;
+import com.example.levelup.R;
 import com.example.levelup.services.MessageListenerService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance("https://levelup-3bc20-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
 
-// Start the msg service
+        // Start the msg service
         Intent serviceIntent = new Intent(this, MessageListenerService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ContextCompat.startForegroundService(this, serviceIntent);
@@ -67,8 +67,12 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_NOTIFICATION_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted
+                Log.d("MainActivity", "Notification permission granted. Thank you!");
+                Toast.makeText(this, "Notification permission granted. You can turn it off via settings if needed.", Toast.LENGTH_LONG).show();
             } else {
                 // Permission denied
+                Log.e("MainActivity", "Notification permission denied. This permission is crucial for the app to work.");
+                Toast.makeText(this, "Notification permission denied. This permission is crucial for the app to work.", Toast.LENGTH_LONG).show();
             }
         }
     }

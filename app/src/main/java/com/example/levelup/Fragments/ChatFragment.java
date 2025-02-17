@@ -61,6 +61,8 @@ public class ChatFragment extends Fragment {
 
     private ImageView overlayImage;
 
+    private ImageView returnButton;
+
     public ChatFragment() {
         // Required empty public constructor
     }
@@ -99,6 +101,18 @@ public class ChatFragment extends Fragment {
         blockButton.setOnClickListener(v -> showBlockConfirmationDialog());
 
         overlayImage = view.findViewById(R.id.overlayImage);
+
+        returnButton = view.findViewById(R.id.returnButton);
+
+        returnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               //hit back key
+               requireActivity().onBackPressed();
+            }
+        });
+
+
 
         return view;
     }

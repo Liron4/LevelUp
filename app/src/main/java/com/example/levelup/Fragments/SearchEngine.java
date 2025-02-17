@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -49,6 +50,7 @@ public class SearchEngine extends Fragment {
     private TextView nicknameHolder;
     ImageView moveToContactsButton;
     ImageView settingsButton;
+    ImageView signOutButton;
 
     public SearchEngine() {
         // Required empty public constructor
@@ -94,6 +96,11 @@ public class SearchEngine extends Fragment {
                 return true;
             }
             return false;
+        });
+
+        signOutButton = view.findViewById(R.id.signOutButton);
+        signOutButton.setOnClickListener(v -> {
+            requireActivity().onBackPressed();
         });
 
         moveToContactsButton = view.findViewById(R.id.moveToContactsButton);
