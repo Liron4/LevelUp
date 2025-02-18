@@ -238,12 +238,14 @@ public class SearchEngine extends Fragment {
                     String mynickname = dataSnapshot.getValue(String.class);
                     if (mynickname != null) {
                         nicknameHolder.setText("Welcome " + mynickname + "!");
-
-                        if ("Xiaomi".equalsIgnoreCase(android.os.Build.MANUFACTURER)) {
-                            // Set default font for Xiaomi devices
+                        if (isXiaomiDevice()) {
                             nicknameHolder.setTypeface(null, Typeface.NORMAL);
-                        } else {
-                            // Set custom font for other devices
+                            //set the textview few pixel up to compensate for regular font
+                            nicknameHolder.setTranslationY(-10);
+                            // make it normal font since it is Xiaomi device
+                        }
+                        else {
+                            // Set custom font for comptabile devices
                             Typeface customTypeface = ResourcesCompat.getFont(getContext(), R.font.gamer_font);
                             nicknameHolder.setTypeface(customTypeface);
                         }
@@ -261,6 +263,10 @@ public class SearchEngine extends Fragment {
                 }
             });
         }
+    }
+
+    private boolean isXiaomiDevice() {
+        return android.os.Build.MANUFACTURER.equalsIgnoreCase("Xiaomi");
     }
 
 }

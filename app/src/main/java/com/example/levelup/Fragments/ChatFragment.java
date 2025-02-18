@@ -370,9 +370,11 @@ public class ChatFragment extends Fragment {
                         if (userProfile.favList.contains(recieverNickname)) {
                             userProfile.favList.remove(recieverNickname);
                             favPersonButton.setImageResource(android.R.drawable.star_big_off);
+                            Toast.makeText(getContext(), recieverNickname + " removed from favorites.", Toast.LENGTH_SHORT).show();
                         } else {
                             userProfile.favList.add(recieverNickname);
                             favPersonButton.setImageResource(android.R.drawable.star_big_on);
+                            Toast.makeText(getContext(), recieverNickname + " added to favorites.", Toast.LENGTH_SHORT).show();
                         }
 
                         userRef.setValue(userProfile);

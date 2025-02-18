@@ -288,7 +288,6 @@ public class ContactsList extends Fragment {
     // חלק ב' - לעדכן עם המשדר את הרשימת אנשי קשר בזמן שאנחנו בפרגמנט
 
 
-
     private void updateRecyclerViewWithNewMessage(String nickname, String latestMessage, long timestamp) {
         for (UserProfile userProfile : userList) { // נעבור על כל המשתמשים ברשימה
             if (userProfile.nickname.equals(nickname)) { // אם מצאנו את המשתמש שהגיעה ממנו ההודעה

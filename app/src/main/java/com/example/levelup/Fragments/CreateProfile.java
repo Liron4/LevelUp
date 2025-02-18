@@ -285,7 +285,7 @@ public class CreateProfile extends Fragment {
                 .show();
     }
 
-    private void updateSelectedGamesTextView() {
+    private void updateSelectedGamesTextView() { //
         StringBuilder gamesText = new StringBuilder();
         for (int i = 0; i < selectedGames.size(); i++) {
             gamesText.append(selectedGames.get(i));

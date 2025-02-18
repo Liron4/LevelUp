@@ -1,5 +1,6 @@
 package com.example.levelup.Fragments;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.levelup.services.MessageListenerService;
@@ -31,6 +33,8 @@ public class FragmentLogin extends Fragment {
     private EditText passwordField;
     private Button loginButton;
     private Button createProfileButton;
+
+    private TextView forgotPasswordText;
 
     private FirebaseAuth mAuth;
 
@@ -63,6 +67,8 @@ public class FragmentLogin extends Fragment {
             NavController navController = NavHostFragment.findNavController(this);
             navController.navigate(R.id.action_fragmentLogin_to_searchEngine);
         }
+
+
     }
 
     @Override
@@ -94,6 +100,33 @@ public class FragmentLogin extends Fragment {
             // Navigate to the CreateProfile fragment
             Navigation.findNavController(v).navigate(R.id.action_login_to_createProfileFragment);
         });
+
+        forgotPasswordText = view.findViewById(R.id.forgotPasswordText);
+        forgotPasswordText.setOnClickListener(v -> {
+            String email = emailField.getText().toString();
+            if (email.isEmpty()) {
+                Toast.makeText(getActivity(), "Please enter your email to reset password.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            new AlertDialog.Builder(getActivity())
+                    .setTitle("Reset Password")
+                    .setMessage("Are you sure you want to reset your password?")
+                    .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                        mAuth.sendPasswordResetEmail(email)
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        Toast.makeText(getActivity(), "Password reset email sent.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(getActivity(), "Error sending password reset email.", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    })
+                    .setNegativeButton(android.R.string.no, null)
+                    .show();
+        });
+
+
 
         return view;
     }

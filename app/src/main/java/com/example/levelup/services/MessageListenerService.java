@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -52,17 +54,20 @@ public class MessageListenerService extends Service {
                 this, 0, notificationIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // Build the notification using the same importance as the channel
+// Build the notification using the same importance as the channel
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Message Listener Service")
+                .setContentTitle("Levelup Notification Service")
                 .setContentText("Listening for new messages")
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_LOW)  // Match channel importance
-                 .setSilent(true)  // Remove silent flag so the notification is fully visible
-                .setSmallIcon(R.drawable.bellicon)  // Ensure this icon meets Android guidelines (white on transparent background)
-                .setCategory(NotificationCompat.CATEGORY_SERVICE);
+                .setSilent(true)  // Remove silent flag so the notification is fully visible
+                .setSmallIcon(R.drawable.bellicon)// Ensure this icon meets Android guidelines (white on transparent background)
+                .setVisibility(NotificationCompat.VISIBILITY_SECRET)  // Do not show on lock screen
+                .setCategory(NotificationCompat.CATEGORY_SERVICE);  // Must be set to CATEGORY_SERVICE for foreground services
+
 
         startForeground(1, builder.build());
+
     }
 
     @Override
@@ -172,7 +177,8 @@ public class MessageListenerService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
-                .setGroup(groupKey);
+                .setGroup(groupKey)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC); // Show on lock screen
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify((int) System.currentTimeMillis(), builder.build());
@@ -186,7 +192,8 @@ public class MessageListenerService extends Service {
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setGroup(groupKey)
-                .setGroupSummary(true);
+                .setGroupSummary(true)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC); // Show on lock screen
 
         notificationManager.notify(message.getFrom().hashCode(), summaryBuilder.build());
         Log.d("MessageListenerService", "Notification sent for message from: " + message.getUsername());

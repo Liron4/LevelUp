@@ -1,5 +1,6 @@
 package com.example.levelup.Fragments;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -29,8 +30,21 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class SettingsFragment extends Fragment implements FavoriteGamesAdapter.OnGameDeleteListener {
     private RecyclerView gamesRecyclerView;
@@ -186,21 +200,101 @@ public class SettingsFragment extends Fragment implements FavoriteGamesAdapter.O
     }
 
     private void searchGame(String query) {
-        String[] gamesList = getResources().getStringArray(R.array.popular_multiplayer_games);
-        for (String game : gamesList) {
-            if (game.equalsIgnoreCase(query)) {
-                if (!favoriteGames.contains(game)) {
-                    favoriteGames.add(game);
-                    adapter.notifyDataSetChanged();
-                    addGameToDatabase(game);
-                    Toast.makeText(getContext(), "Game added to favorites", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getContext(), "Game already in favorites", Toast.LENGTH_SHORT).show();
-                }
-                return;
+        List<String> localResults = loadLocalGames(query);
+        if (!localResults.isEmpty()) {
+            showGameResults(localResults);
+        } else {
+            try {
+                String encodedQuery = URLEncoder.encode(query, "UTF-8");
+                String url = "https://api.rawg.io/api/games?key=ff52dd671c9045c0a820c272cc243062&search=" + encodedQuery + "&page_size=5";
+
+                OkHttpClient client = new OkHttpClient();
+                Request request = new Request.Builder().url(url).build();
+
+                client.newCall(request).enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        getActivity().runOnUiThread(() -> {
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if (!response.isSuccessful()) {
+                            onFailure(call, new IOException("Unexpected response " + response));
+                            return;
+                        }
+                        String responseData = response.body().string();
+                        List<String> gameResults = parseGameResults(responseData);
+                        getActivity().runOnUiThread(() -> {
+                            if (gameResults.isEmpty()) {
+                                Toast.makeText(getContext(), "No games found", Toast.LENGTH_SHORT).show();
+                            } else {
+                                showGameResults(gameResults);
+                            }
+                        });
+                    }
+                });
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
             }
         }
-        Toast.makeText(getContext(), "Game not found", Toast.LENGTH_SHORT).show();
+    }
+
+    private List<String> loadLocalGames(String query) {
+        String[] localGames = getResources().getStringArray(R.array.popular_multiplayer_games);
+        List<String> filteredGames = new ArrayList<>();
+        for (String game : localGames) {
+            if (game.toLowerCase().contains(query.toLowerCase())) {
+                filteredGames.add(game);
+            }
+        }
+        if (filteredGames.size() > 5) {
+            filteredGames = filteredGames.subList(0, 5);
+        }
+        return filteredGames;
+    }
+
+    private List<String> parseGameResults(String json) {
+        List<String> results = new ArrayList<>();
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            JSONArray jsonArray = jsonObject.getJSONArray("results");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject gameObj = jsonArray.getJSONObject(i);
+                String gameName = gameObj.getString("name");
+                results.add(gameName);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
+
+    private void showGameResults(List<String> gameResults) {
+        if (gameResults.isEmpty()) {
+            Toast.makeText(getContext(), "No games found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Select a Game")
+                .setItems(gameResults.toArray(new String[0]), (dialog, which) -> {
+                    String selectedGame = gameResults.get(which);
+                    if (!favoriteGames.contains(selectedGame)) {
+                        favoriteGames.add(selectedGame);
+                        adapter.notifyDataSetChanged();
+                        addGameToDatabase(selectedGame);
+                        Toast.makeText(getContext(), "Game added to favorites", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), "Game already in favorites", Toast.LENGTH_SHORT).show();
+                    }
+                    searchBar.setText("");
+                })
+                .setOnCancelListener(dialog -> {
+                    // Do nothing, so the text remains for correction
+                })
+                .show();
     }
 
 
