@@ -18,11 +18,13 @@
         android:theme="@style/Theme.LevelUp"
         tools:targetApi="31">
         <activity
+            android:name=".activities.StopNotificationsActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.MainActivity"
-            android:launchMode="singleTop"
             android:exported="true"
-            android:theme="@style/Theme.LevelUp"
-            >
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.LevelUp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -32,8 +34,7 @@
         <service
             android:name=".services.MessageListenerService"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
-            />
+            android:foregroundServiceType="dataSync" />
     </application>
 
 </manifest>

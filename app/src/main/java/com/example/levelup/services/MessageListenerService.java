@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import com.example.levelup.activities.MainActivity;
 import com.example.levelup.R;
+import com.example.levelup.activities.StopNotificationsActivity;
 import com.example.levelup.models.Message;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -49,25 +50,23 @@ public class MessageListenerService extends Service {
     }
 
     private void startForegroundService() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
+        Intent notificationIntent = new Intent(this, StopNotificationsActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this, 0, notificationIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-// Build the notification using the same importance as the channel
+        // Build the notification using the same importance as the channel
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Levelup Notification Service")
                 .setContentText("Listening for new messages")
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_LOW)  // Match channel importance
                 .setSilent(true)  // Remove silent flag so the notification is fully visible
-                .setSmallIcon(R.drawable.bellicon)// Ensure this icon meets Android guidelines (white on transparent background)
+                .setSmallIcon(R.drawable.bellicon) // Ensure this icon meets Android guidelines (white on transparent background)
                 .setVisibility(NotificationCompat.VISIBILITY_SECRET)  // Do not show on lock screen
                 .setCategory(NotificationCompat.CATEGORY_SERVICE);  // Must be set to CATEGORY_SERVICE for foreground services
 
-
         startForeground(1, builder.build());
-
     }
 
     @Override

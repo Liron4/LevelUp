@@ -1,6 +1,7 @@
 package com.example.levelup.Fragments;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -215,24 +216,32 @@ public class ChatFragment extends Fragment {
     }
 
     private void setupChatPath(String receiverUid) {
-
-
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String currentUserUid = currentUser.getUid();
-            // Sort UIDs lexicographically
             if (currentUserUid.compareTo(receiverUid) < 0) {
                 chatPath = currentUserUid + "_" + receiverUid;
             } else {
                 chatPath = receiverUid + "_" + currentUserUid;
             }
             Log.d("ChatPath", "Chat path: " + chatPath);
+
+            // Add both UIDs to 'members' child
+            DatabaseReference membersRef = databaseReference.child("chats")
+                    .child(chatPath)
+                    .child("members");
+            membersRef.child(currentUserUid).setValue(true);
+            membersRef.child(receiverUid).setValue(true);
+
             loadChatHistory();
         }
     }
 
     private void loadChatHistory() {
-        Query query = databaseReference.child("chats").child(chatPath).limitToLast(25);
+        Query query = databaseReference.child("chats")
+                .child(chatPath)
+                .child("messages")
+                .limitToLast(25);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -298,8 +307,10 @@ public class ChatFragment extends Fragment {
             }
         };
         Log.d("ChatFragment", "Adding chatListener to databaseReference");
-        databaseReference.child("chats").child(chatPath).addChildEventListener(chatListener);
-    }
+        databaseReference.child("chats")
+                .child(chatPath)
+                .child("messages")
+                .addChildEventListener(chatListener);    }
 
     private void sendMessage() {
         String messageContent = messageEditText.getText().toString().trim();
@@ -326,7 +337,10 @@ public class ChatFragment extends Fragment {
                                     } else {
                                         long currentTime = System.currentTimeMillis();
                                         Message message = new Message(currentNickname, messageContent, currentTime, currentUserUid, receiverUid, false);
-                                        databaseReference.child("chats").child(chatPath).push().setValue(message);
+                                        DatabaseReference msgRef = databaseReference.child("chats")
+                                                .child(chatPath)
+                                                .child("messages");
+                                        msgRef.push().setValue(message);
                                         databaseReference.child("notifications").child(receiverUid).push().setValue(message);
                                         messageList.add(message);
                                         messageAdapter.notifyItemInserted(messageList.size() - 1);
@@ -446,6 +460,7 @@ public class ChatFragment extends Fragment {
                             blockedList.add(recieverNickname);
                             userRef.child("blockedList").setValue(blockedList);
                             Toast.makeText(getContext(), recieverNickname + " has been blocked.", Toast.LENGTH_SHORT).show();
+                            showReportConfirmationDialog(currentUserUid, currentNickname, receiverUid, recieverNickname);
                         } else {
                             Toast.makeText(getContext(), recieverNickname + " is already blocked.", Toast.LENGTH_SHORT).show();
                         }
@@ -458,6 +473,51 @@ public class ChatFragment extends Fragment {
                 }
             });
         }
+    }
+
+    private void showReportConfirmationDialog(String reporterUid, String reporterNickname, String reportedUid, String reportedNickname) {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Report User")
+                .setMessage("Do you want to report this user?")
+                .setPositiveButton("Yes", (dialog, which) -> uploadReportToDatabase(reporterUid, reporterNickname, reportedUid, reportedNickname))
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void uploadReportToDatabase(String reporterUid, String reporterNickname, String reportedUid, String reportedNickname) {
+        DatabaseReference messagesRef = databaseReference.child("chats").child(chatPath).child("messages");
+        messagesRef.limitToLast(50).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                StringBuilder messageContent = new StringBuilder();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Message message = snapshot.getValue(Message.class);
+                    if (message != null) {
+                        messageContent.append(message.getUsername()).append(": ").append(message.getContent()).append("\n");
+                    }
+                }
+
+                String reportId = databaseReference.child("reports").child(reporterUid).push().getKey();
+                if (reportId != null) {
+                    DatabaseReference reportRef = databaseReference.child("reports").child(reporterUid).child(reportId);
+                    reportRef.child("reporterNickname").setValue(reporterNickname);
+                    reportRef.child("reporterUid").setValue(reporterUid);
+                    reportRef.child("reportedNickname").setValue(reportedNickname);
+                    reportRef.child("reportedUid").setValue(reportedUid);
+                    reportRef.child("chatPath").setValue(chatPath);
+                    reportRef.child("messageContent").setValue(messageContent.toString());
+                    reportRef.child("handled").setValue(false);
+                    Toast.makeText(getContext(), "Report submitted successfully.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Error: Could not generate report ID.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(getContext(), "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void handleUnblockUser() {

@@ -216,26 +216,24 @@ public class ContactsList extends Fragment {
     }
 
     private void fetchLatestMessageForUser(String userUid, String favNickname, List<UserProfile> tempUserList, int favListSize) {
-        Log.d("ContactsList", "Fetching latest message for user UID: " + userUid);
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        String currentUserUid = currentUser.getUid();
-        String chatPath = (currentUserUid.compareTo(userUid) < 0) // נבדוק מי קטן יותר ונסדר את הקישור לפי זה
+        String currentUserUid = mAuth.getCurrentUser().getUid();
+        String chatPath = (currentUserUid.compareTo(userUid) < 0)
                 ? currentUserUid + "_" + userUid
                 : userUid + "_" + currentUserUid;
 
-        DatabaseReference chatPathRef = databaseReference.child("chats").child(chatPath); // קישור לצ'אט של המשתמש הנוכחי עם המשתמש שהגענו אליו
+        DatabaseReference chatPathRef = databaseReference
+                .child("chats")
+                .child(chatPath)
+                .child("messages"); // Use the 'messages' child
 
         chatPathRef.limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    Log.w("ContactsList", "No chat path found for: " + chatPath);
-                    addUserProfileWithNoMessages(favNickname, tempUserList); // נוסיף את המשתמש לרשימה עם הודעה ריקה
+                    addUserProfileWithNoMessages(favNickname, tempUserList);
                     checkIfFinished();
                     return;
                 }
-
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Message message = snapshot.getValue(Message.class);
                     if (message != null) {
@@ -248,21 +246,18 @@ public class ContactsList extends Fragment {
                         }
                         userProfile.timestamp = message.getTimestamp();
                         tempUserList.add(userProfile);
-                        Log.d("ContactsList", "Message fetched: " + message.getContent());
                     }
                 }
-
                 checkIfFinished();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.e("ContactsList", "Failed to fetch messages for chat: " + chatPath + ". Error: " + databaseError.getMessage());
+                Log.e("ContactsList", "Failed to fetch messages: " + databaseError.getMessage());
             }
 
-            private void checkIfFinished() { // בגלל שהקוד א-סינכרוני, נצטרך לבדוק האם כבר סיימנו עם טיפול המשתמשים בכל הבאת הודעה
-                   if (tempUserList.size() == favListSize) {
-                    Log.d("ContactsList", "All messages fetched. Sorting and displaying.");
+            private void checkIfFinished() {
+                if (tempUserList.size() == favListSize) {
                     sortAndDisplayUsers(tempUserList);
                 }
             }

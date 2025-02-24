@@ -2,13 +2,18 @@ package com.example.levelup.activities;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.CheckBox;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -36,6 +41,29 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Show Beta Phase Message
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        boolean showBetaMessage = prefs.getBoolean("showBetaMessage", true);
+        if (showBetaMessage) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            LayoutInflater inflater = this.getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.dialog_beta_message, null);
+            builder.setView(dialogView);
+
+            CheckBox dontShowAgain = dialogView.findViewById(R.id.dontShowAgainCheckBox);
+            builder.setTitle("Beta Phase")
+                    .setMessage("This app is in Beta Phase. Please report bugs to teamlevelup66@gmail.com. If you feel harassed, use the block button and the blocked user's actions will be reviewed.")
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        if (dontShowAgain.isChecked()) {
+                            SharedPreferences.Editor editor = prefs.edit();
+                            editor.putBoolean("showBetaMessage", false);
+                            editor.apply();
+                        }
+                        dialog.dismiss();
+                    })
+                    .show();
+        }
 
         // Request notification permission
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

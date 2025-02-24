@@ -174,6 +174,7 @@ public class SearchEngine extends Fragment {
     }
 
     private void searchByNickname(String query) {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         Query queryByNickname = databaseReference.orderByChild("nickname").startAt(query).endAt(query + "\uf8ff");
         queryByNickname.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -181,7 +182,7 @@ public class SearchEngine extends Fragment {
                 filteredList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     UserProfile user = snapshot.getValue(UserProfile.class);
-                    if (user != null && user.nickname.toLowerCase().contains(query.toLowerCase())) {
+                    if (user != null && !snapshot.getKey().equals(currentUserId) && user.nickname.toLowerCase().contains(query.toLowerCase())) {
                         filteredList.add(user);
                     }
                 }
@@ -204,9 +205,10 @@ public class SearchEngine extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 filteredList.clear();
+                String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     UserProfile user = snapshot.getValue(UserProfile.class);
-                    if (user != null && user.favoriteGames != null) {
+                    if (user != null && !snapshot.getKey().equals(currentUserId) && user.favoriteGames != null) {
                         for (String game : user.favoriteGames) {
                             if (game.toLowerCase().contains(query.toLowerCase())) {
                                 filteredList.add(user);
@@ -238,17 +240,8 @@ public class SearchEngine extends Fragment {
                     String mynickname = dataSnapshot.getValue(String.class);
                     if (mynickname != null) {
                         nicknameHolder.setText("Welcome " + mynickname + "!");
-                        if (isXiaomiDevice()) {
-                            nicknameHolder.setTypeface(null, Typeface.NORMAL);
-                            //set the textview few pixel up to compensate for regular font
-                            nicknameHolder.setTranslationY(-10);
-                            // make it normal font since it is Xiaomi device
-                        }
-                        else {
-                            // Set custom font for comptabile devices
-                            Typeface customTypeface = ResourcesCompat.getFont(getContext(), R.font.gamer_font);
-                            nicknameHolder.setTypeface(customTypeface);
-                        }
+                        nicknameHolder.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM); // CRTICIAL
+
 
 
                         Log.d("SearchEngine", "Current user nickname fetched: " + mynickname);
