@@ -91,6 +91,7 @@ public class SearchEngine extends Fragment {
                 if (query.isEmpty()) {
                     loadLatestProfiles();
                 } else {
+                    recyclerView.clearOnScrollListeners();
                     performSearch(query);
                 }
                 return true;
@@ -140,7 +141,7 @@ public class SearchEngine extends Fragment {
 
     private void loadLatestProfiles() {
         DatabaseReference usersRef = databaseReference;
-        Query latestUsersQuery = usersRef.orderByKey().limitToLast(25);
+        Query latestUsersQuery = usersRef.orderByKey().limitToFirst(10); // ✅ Changed from limitToLast
 
         latestUsersQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -155,10 +156,82 @@ public class SearchEngine extends Fragment {
                 filteredList.clear();
                 filteredList.addAll(profiles);
                 userListAdapter.notifyDataSetChanged();
+                setupScrollListener();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                // Handle possible errors.
+            }
+        });
+    }
+
+    private void setupScrollListener() {
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (layoutManager != null && layoutManager.findLastCompletelyVisibleItemPosition() == filteredList.size() - 1) {
+                    GetlatestUserProfilesUID();
+                }
+            }
+        });
+    }
+
+    private void GetlatestUserProfilesUID() {
+    String lastUserNickname = filteredList.get(filteredList.size() - 1).nickname;
+    Query queryByNickname = databaseReference.orderByChild("nickname").equalTo(lastUserNickname);
+queryByNickname.addListenerForSingleValueEvent(new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            if (dataSnapshot.exists()) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String lastUserId = snapshot.getKey();
+                    loadMoreProfilesByUid(lastUserId);
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            // Handle possible errors.
+        }
+    });
+}
+
+
+    private void loadMoreProfilesByUid(String lastUserId) {
+        Log.d("SearchEngine", "loadMoreProfilesByUid called with lastUserId: " + lastUserId);
+        DatabaseReference usersRef = databaseReference;
+        Query moreUsersQuery = usersRef.orderByKey().startAfter(lastUserId).limitToFirst(10); // ✅ Use limitToFirst
+
+        moreUsersQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("SearchEngine", "onDataChange called with dataSnapshot: " + dataSnapshot);
+                List<UserProfile> profiles = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    UserProfile user = snapshot.getValue(UserProfile.class);
+                    if (user != null && !snapshot.getKey().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                        profiles.add(user);
+                    }
+                }
+                if (profiles.isEmpty()) {
+                    Log.d("SearchEngine", "No more profiles found");
+                    Toast.makeText(getContext(), "All users loaded", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d("SearchEngine", "Profiles loaded: " + profiles.size());
+                    Toast.makeText(getContext(), "Loading extra users", Toast.LENGTH_SHORT).show();
+                    filteredList.addAll(profiles);
+                    userListAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("SearchEngine", "onCancelled called with error: " + databaseError.getMessage());
                 // Handle possible errors.
             }
         });

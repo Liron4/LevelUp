@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
             CheckBox dontShowAgain = dialogView.findViewById(R.id.dontShowAgainCheckBox);
             builder.setTitle("Beta Phase")
-                    .setMessage("This app is in Beta Phase. Please report bugs to teamlevelup66@gmail.com. If you feel harassed, use the block button and the blocked user's actions will be reviewed.")
+                    .setMessage("This app is in Beta Phase. Please report bugs to teamlevelup66@gmail.com. If you feel harassed, use the block button and the blocked user's actions will be reviewed. \n Also please make sure your time and date is set correctly to your relative timezone!")
                     .setPositiveButton("OK", (dialog, which) -> {
                         if (dontShowAgain.isChecked()) {
                             SharedPreferences.Editor editor = prefs.edit();

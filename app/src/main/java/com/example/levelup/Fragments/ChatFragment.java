@@ -259,6 +259,18 @@ public class ChatFragment extends Fragment {
                 addChatListener();
                 // Check if the person is in the favorites list and update the button image
                 checkIfFavorite();
+
+                // Add scroll listener to load older messages
+                messagesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                        super.onScrolled(recyclerView, dx, dy);
+                        LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                        if (layoutManager != null && layoutManager.findFirstCompletelyVisibleItemPosition() == 0) {
+                            loadExtraMessages();
+                        }
+                    }
+                });
             }
 
 
@@ -266,6 +278,41 @@ public class ChatFragment extends Fragment {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Toast.makeText(getContext(), "Error loading chat history: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadExtraMessages() {
+        if (messageList.isEmpty()) return;
+
+        long firstMessageTimestamp = messageList.get(0).getTimestamp();
+        Query query = databaseReference.child("chats")
+                .child(chatPath)
+                .child("messages")
+                .orderByChild("timestamp")
+                .endBefore(firstMessageTimestamp)
+                .limitToLast(25);
+
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<Message> olderMessages = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Message message = snapshot.getValue(Message.class);
+                    if (message != null) {
+                        olderMessages.add(message);
+                    }
+                }
+                if (!olderMessages.isEmpty()) {
+                    messageList.addAll(0, olderMessages);
+                    messageAdapter.notifyItemRangeInserted(0, olderMessages.size());
+                    messagesRecyclerView.scrollToPosition(olderMessages.size() - 1);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(getContext(), "Error loading older messages: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -489,11 +536,11 @@ public class ChatFragment extends Fragment {
         messagesRef.limitToLast(50).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                StringBuilder messageContent = new StringBuilder();
+                StringBuilder messagesContent = new StringBuilder();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Message message = snapshot.getValue(Message.class);
                     if (message != null) {
-                        messageContent.append(message.getUsername()).append(": ").append(message.getContent()).append("\n");
+                        messagesContent.append(message.getUsername()).append(": ").append(message.getContent()).append(", \n");
                     }
                 }
 
@@ -505,7 +552,7 @@ public class ChatFragment extends Fragment {
                     reportRef.child("reportedNickname").setValue(reportedNickname);
                     reportRef.child("reportedUid").setValue(reportedUid);
                     reportRef.child("chatPath").setValue(chatPath);
-                    reportRef.child("messageContent").setValue(messageContent.toString());
+                    reportRef.child("messagesContent").setValue(messagesContent.toString());
                     reportRef.child("handled").setValue(false);
                     Toast.makeText(getContext(), "Report submitted successfully.", Toast.LENGTH_SHORT).show();
                 } else {
