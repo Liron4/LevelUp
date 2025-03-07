@@ -37,7 +37,9 @@ Block users instantly and report inappropriate behavior for further review.
 ---
 
 ## 🎥 Demo  
-A demonstration video showcasing all features, including **registration, gamer search, messaging, and contact management**, is available! 👀  
+A demonstration video showcasing all features, including **registration, gamer search, messaging, and contact management**, is available! 👀 
+
+![GIF](https://github.com/Liron4/LevelUp/blob/main/LevelUPDEMOGIF.gif)
 
 
 ## [🌐 For Linkedin HEB Post, click here!](https://www.linkedin.com/feed/update/urn:li:activity:7300437365511065600/)
